@@ -118,12 +118,10 @@ def get_total_reviews(soup):
 
     total_reviews_tag = soup.find(
         "span", class_="text__373c0__2Kxyz text-color--white__373c0__22aE8 text-align--left__373c0__2XGa- text-weight--semibold__373c0__2l0fe text-size--large__373c0__3t60B")
-    if total_reviews_tag:
-        total_reviews_str = total_reviews_tag.text
-        total_reviews = int(re.search('\d+', total_reviews_str).group())
-        return total_reviews
-    else:
-        return 0
+    total_reviews_str = total_reviews_tag.text
+    total_reviews = int(re.search('\d+', total_reviews_str).group())
+
+    return total_reviews
 
 
 def crawl_resto(url, writer):
@@ -144,6 +142,8 @@ def crawl_resto(url, writer):
 
     for review_page in review_pages:
         get_reviews_from_page(review_page, writer)
+        # Random sleep to avoid being banned by Yelp
+        time.sleep(random.randint(1, 3))
 
 
 def get_total_restos(soup):

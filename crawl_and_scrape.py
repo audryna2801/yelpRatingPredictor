@@ -72,9 +72,8 @@ def convert_if_relative_url(new_url, main_url=MAIN_URL):
     else:
         return urllib.parse.urljoin(main_url, new_url)
 
+
 # crawling and scraping functions
-
-
 def get_links_from_page(html):
     '''
 
@@ -85,7 +84,7 @@ def get_links_from_page(html):
     soup = bs4.BeautifulSoup(html)
     all_tags = soup.find_all("a", href=True)
     all_links = [tag.get("href") for tag in all_tags]
-    good_links = {link for link in all_links if link.startswith(
+    good_links = {convert_if_relative_url(link) for link in all_links if link.startswith(
         '/biz') and "?" not in link}
 
     return good_links

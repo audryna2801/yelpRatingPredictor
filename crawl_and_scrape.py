@@ -7,53 +7,19 @@ import bs4
 MAIN_URL = "https://www.yelp.com"
 
 
-def get_request(url):
+def read_url(my_url):
     '''
-    Open a connection to the specified URL and if successful
-    read the data.
-
-    Inputs:
-        url: must be an absolute URL
-
-    Outputs:
-        request object or None
-
-    Examples:
-        get_request("https://www.yelp.com/search?find_desc=&find_loc=Chicago%2C+IL")
-    '''
-
-    if is_absolute_url(url):
-        try:
-            r = requests.get(url)
-            if r.status_code == 404 or r.status_code == 403:
-                r = None
-        except Exception:
-            # fail on any kind of error
-            r = None
-    else:
-        r = None
-
-    return r
-
-
-def read_request(request):
-    '''
-    Return data from request object.  Returns result or "" if the read
+    Loads html from url. Returns result or "" if the read
     fails..
     '''
-
+    pm = urllib3.PoolManager(
+        cert_reqs='CERT_REQUIRED',
+        ca_certs=certifi.where())
     try:
-        return request.text.encode('iso-8859-1')
+        return pm.urlopen(url=my_url, method="GET").data
     except Exception:
         print("read failed: " + request.url)
         return ""
-
-
-def get_request_url(request):
-    '''
-    Extract true URL from the request
-    '''
-    return request.url
 
 
 def is_absolute_url(url):

@@ -160,9 +160,11 @@ def crawl_city(url):
 
 
 def crawl_and_scrape():
-    starting_url = "https://www.yelp.com/search?find_desc=&find_loc=Chicago%2C%20IL&ns=1"
-    html = read_url(starting_url)
-
+    city_url = "https://www.yelp.com/search?find_desc=&find_loc=Chicago%2C%20IL&ns=1"
+    city_restos = crawl_city(city_url)
     with open("reviews.csv", "w") as f:
         writer = csv.writer(f)
-    pass
+
+    for resto in city_restos:
+        reviews = crawl_resto(resto)
+        writer.writerows(reviews)

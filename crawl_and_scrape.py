@@ -4,6 +4,8 @@ import os
 import bs4
 import urllib3
 import certifi
+import json
+import csv
 
 # utility functions
 MAIN_URL = "https://www.yelp.com"
@@ -89,11 +91,26 @@ def get_links_from_page(html):
     return good_links
 
 
-def get_reviews_from_page():
-    pass
+def get_reviews_from_page(html):
+    soup = bs4.BeautifulSoup(html)
+    tag = soup.find("script", type="application/ld+json")
+    json_object = json.loads(tag.contents[0])
+    reviews = json_object["review"]
+    rows = []
+
+    for review in reviews:
+        rating = review['reviewRating']["ratingValue"]
+        text = review["description"]
+        row = [rating, text]
+        rows.append(row)
+
+    return rows
 
 
 def crawl_and_scrape():
     starting_url = "https://www.yelp.com/search?find_desc=&find_loc=Chicago%2C+IL"
     html = read_url(starting_url)
+
+    with open("reviews.csv", "w") as f:
+        writer = csv.writer(f)
     pass

@@ -2,6 +2,8 @@ import urllib.parse
 import requests
 import os
 import bs4
+import urllib3
+import certifi
 
 # utility functions
 MAIN_URL = "https://www.yelp.com"
@@ -10,8 +12,9 @@ MAIN_URL = "https://www.yelp.com"
 def read_url(my_url):
     '''
     Loads html from url. Returns result or "" if the read
-    fails..
+    fails.
     '''
+
     pm = urllib3.PoolManager(
         cert_reqs='CERT_REQUIRED',
         ca_certs=certifi.where())
@@ -68,3 +71,29 @@ def convert_if_relative_url(new_url, main_url=MAIN_URL):
         return urllib.parse.urljoin(main_url, new_url)
 
 # crawling and scraping functions
+
+
+def get_links_from_page(html):
+    '''
+
+    Returns:
+        set of restaurant links from the page
+    '''
+
+    soup = bs4.BeautifulSoup(html)
+    all_tags = soup.find_all("a", href=True)
+    all_links = [tag.get("href") for tag in all_tags]
+    good_links = {link for link in all_links if link.startswith(
+        '/biz') and "?" not in link}
+
+    return good_links
+
+
+def get_reviews_from_page():
+    pass
+
+
+def crawl_and_scrape():
+    starting_url = "https://www.yelp.com/search?find_desc=&find_loc=Chicago%2C+IL"
+    html = read_url(starting_url)
+    pass

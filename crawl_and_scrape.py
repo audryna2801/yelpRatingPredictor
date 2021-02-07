@@ -80,7 +80,7 @@ def convert_if_relative_url(new_url, main_url=MAIN_URL):
         new_url is a relative URL.
 
     Examples:
-        convert_if_relative_url("https://www.yelp.com", "/biz/girl-and-the-goat-chicago") yields
+        convert_if_relative_url("/biz/girl-and-the-goat-chicago", "https://www.yelp.com") yields
             'https://www.yelp.com/biz/girl-and-the-goat-chicago'
     '''
     if new_url == "" or not is_absolute_url(main_url):
@@ -98,7 +98,7 @@ def convert_if_relative_url(new_url, main_url=MAIN_URL):
     ext = path_parts[0][-4:]
     if ext in [".edu", ".org", ".com", ".net"]:
         return "http://" + new_url
-    elif new_url[:3] == "www":
-        return "http://" + new_path
     else:
         return urllib.parse.urljoin(main_url, new_url)
+
+# crawling and scraping functions

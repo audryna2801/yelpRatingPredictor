@@ -6,6 +6,7 @@ import urllib3
 import certifi
 import json
 import csv
+import re
 
 # utility functions
 MAIN_URL = "https://www.yelp.com"
@@ -74,14 +75,14 @@ def convert_if_relative_url(new_url, main_url=MAIN_URL):
 
 
 # crawling and scraping functions
-def get_links_from_page(html):
+def get_links_from_page(url):
     '''
 
     Returns:
         set of restaurant links from the page
     '''
-
-    soup = bs4.BeautifulSoup(html)
+    html = read_url(url)
+    soup = bs4.BeautifulSoup(html, "lxml")
     all_tags = soup.find_all("a", href=True)
     all_links = [tag.get("href") for tag in all_tags]
     good_links = {convert_if_relative_url(link) for link in all_links if link.startswith(
@@ -90,8 +91,9 @@ def get_links_from_page(html):
     return good_links
 
 
-def get_reviews_from_page(html):
-    soup = bs4.BeautifulSoup(html)
+def get_reviews_from_page(url):
+    html = read_url(url)
+    soup = bs4.BeautifulSoup(html, "lxml")
     tag = soup.find("script", type="application/ld+json")
     json_object = json.loads(tag.contents[0])
     reviews = json_object["review"]
@@ -106,8 +108,59 @@ def get_reviews_from_page(html):
     return rows
 
 
+def get_total_reviews(soup):
+    total_reviews_tag = soup.find(
+        "span", class_="text__373c0__2Kxyz text-color--white__373c0__22aE8 text-align--left__373c0__2XGa- text-weight--semibold__373c0__2l0fe text-size--large__373c0__3t60B")
+    total_reviews_str = total_reviews_tag.text
+    total_reviews = int(re.search('\d+', total_reviews_str).group())
+    return total_reviews
+
+
+def crawl_resto(url):
+    html = read_url(url)
+    soup = bs4.BeautifulSoup(html, "lxml")
+    total_reviews = get_total_reviews(soup)
+    review_pages = []
+
+    # Each page has 20 reviews, so we increment by 20
+    for i in range(0, total_reviews, 20):
+        review_pages.append(url + "?start=" + str(i))
+
+    resto_reviews = []
+    for review_page in review_pages:
+        resto_reviews += get_reviews_from_page(review_page)
+
+    return resto_reviews
+
+
+def get_total_restos_page(soup):
+    total_restos_tag = soup.find(
+        "span", class_="text__09f24__1RhSS text-color--black-extra-light__09f24__2ZRGr text-align--left__09f24__ceIWW")
+    total_restos_str = total_restos_tag.text
+    total_restos_page = int(re.search(r'of (\d+)', total_restos_str)[1])
+
+    return total_restos_page
+
+
+def crawl_city(url):
+    html = read_url(url)
+    soup = bs4.BeautifulSoup(html, "lxml")
+    total_restos_page = get_total_restos_page(soup)
+    resto_pages = []
+
+    # Each page has 10 restaurants, so we increment by 10
+    for i in range(0, total_restos_page * 10, 10):
+        resto_pages.append(url + "&start=" + str(i))
+
+    city_restos = []
+    for resto_page in resto_pages:
+        city_restos += get_links_from_page(resto_page)
+
+    return city_restos
+
+
 def crawl_and_scrape():
-    starting_url = "https://www.yelp.com/search?find_desc=&find_loc=Chicago%2C+IL"
+    starting_url = "https://www.yelp.com/search?find_desc=&find_loc=Chicago%2C%20IL&ns=1"
     html = read_url(starting_url)
 
     with open("reviews.csv", "w") as f:

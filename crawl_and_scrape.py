@@ -7,8 +7,10 @@ import certifi
 import json
 import csv
 import re
+import time
+import random
 
-# utility functions
+# Utility functions
 MAIN_URL = "https://www.yelp.com"
 
 
@@ -21,11 +23,8 @@ def read_url(my_url):
     pm = urllib3.PoolManager(
         cert_reqs='CERT_REQUIRED',
         ca_certs=certifi.where())
-    try:
-        return pm.urlopen(url=my_url, method="GET").data
-    except Exception:
-        print("read failed: " + request.url)
-        return ""
+
+    return pm.urlopen(url=my_url, method="GET").data
 
 
 def is_absolute_url(url):
@@ -91,32 +90,49 @@ def get_links_from_page(url):
     return good_links
 
 
-def get_reviews_from_page(url):
+def get_reviews_from_page(url, writer):
+    '''
+
+    Returns:
+        None, modifies the csv file in place
+    '''
     html = read_url(url)
     soup = bs4.BeautifulSoup(html, "lxml")
     tag = soup.find("script", type="application/ld+json")
     json_object = json.loads(tag.contents[0])
     reviews = json_object["review"]
-    rows = []
 
     for review in reviews:
         rating = review['reviewRating']["ratingValue"]
         text = review["description"]
         row = [rating, text]
-        rows.append(row)
-
-    return rows
+        writer.writerow(row)
 
 
 def get_total_reviews(soup):
+    '''
+
+    Returns: 
+        (int) total reviews for a restaurant
+    '''
+
     total_reviews_tag = soup.find(
         "span", class_="text__373c0__2Kxyz text-color--white__373c0__22aE8 text-align--left__373c0__2XGa- text-weight--semibold__373c0__2l0fe text-size--large__373c0__3t60B")
-    total_reviews_str = total_reviews_tag.text
-    total_reviews = int(re.search('\d+', total_reviews_str).group())
-    return total_reviews
+    if total_reviews_tag:
+        total_reviews_str = total_reviews_tag.text
+        total_reviews = int(re.search('\d+', total_reviews_str).group())
+        return total_reviews
+    else:
+        return 0
 
 
-def crawl_resto(url):
+def crawl_resto(url, writer):
+    '''
+
+    Returns:
+        None, modifies the csv file in place
+    '''
+
     html = read_url(url)
     soup = bs4.BeautifulSoup(html, "lxml")
     total_reviews = get_total_reviews(soup)
@@ -126,30 +142,39 @@ def crawl_resto(url):
     for i in range(0, total_reviews, 20):
         review_pages.append(url + "?start=" + str(i))
 
-    resto_reviews = []
     for review_page in review_pages:
-        resto_reviews += get_reviews_from_page(review_page)
-
-    return resto_reviews
+        get_reviews_from_page(review_page, writer)
 
 
-def get_total_restos_page(soup):
+def get_total_restos(soup):
+    '''
+
+    Returns:
+        (int) number of restaurants in the city
+    '''
     total_restos_tag = soup.find(
         "span", class_="text__09f24__1RhSS text-color--black-extra-light__09f24__2ZRGr text-align--left__09f24__ceIWW")
     total_restos_str = total_restos_tag.text
     total_restos_page = int(re.search(r'of (\d+)', total_restos_str)[1])
 
-    return total_restos_page
+    # Each page has 10 restaurants, so we multiply number of pages * 10
+    return total_restos_page * 10
 
 
 def crawl_city(url):
+    '''
+
+    Returns: 
+        list of restaurant links in that city
+    '''
+
     html = read_url(url)
     soup = bs4.BeautifulSoup(html, "lxml")
-    total_restos_page = get_total_restos_page(soup)
+    total_restos = get_total_restos(soup)
     resto_pages = []
 
     # Each page has 10 restaurants, so we increment by 10
-    for i in range(0, total_restos_page * 10, 10):
+    for i in range(0, total_restos, 10):
         resto_pages.append(url + "&start=" + str(i))
 
     city_restos = []
@@ -159,12 +184,19 @@ def crawl_city(url):
     return city_restos
 
 
-def crawl_and_scrape():
-    city_url = "https://www.yelp.com/search?find_desc=&find_loc=Chicago%2C%20IL&ns=1"
-    city_restos = crawl_city(city_url)
-    with open("reviews.csv", "w") as f:
-        writer = csv.writer(f)
+def crawl_and_scrape(city_url="https://www.yelp.com/search?find_desc=&find_loc=Chicago%2C%20IL", csv_filename="reviews.csv"):
+    '''
 
-    for resto in city_restos:
-        reviews = crawl_resto(resto)
-        writer.writerows(reviews)
+    Returns:
+        None, writes the csv file in place
+    '''
+    city_restos = crawl_city(city_url)
+
+    with open(csv_filename, "w") as f:
+        csvwriter = csv.writer(f)
+        csvwriter.writerow(["Rating", "Text"])
+        for resto in city_restos:
+            print(resto + "done")
+            crawl_resto(resto, csvwriter)
+            # Random sleep to avoid being banned by Yelp
+            time.sleep(random.randint(1, 3))

@@ -85,7 +85,7 @@ def get_links_from_page(url):
     all_tags = soup.find_all("a", href=True)
     all_links = [tag.get("href") for tag in all_tags]
     good_links = {convert_if_relative_url(link) for link in all_links if link.startswith(
-        '/biz') and "?" not in link}
+        '/biz') and ("?" not in link)}
 
     return good_links
 
@@ -113,13 +113,17 @@ def get_total_reviews(soup):
     '''
 
     Returns: 
-        (int) total reviews for a restaurant
+        (int) total number reviews for a restaurant
     '''
-
     total_reviews_tag = soup.find(
         "span", class_="text__373c0__2Kxyz text-color--white__373c0__22aE8 text-align--left__373c0__2XGa- text-weight--semibold__373c0__2l0fe text-size--large__373c0__3t60B")
     total_reviews_str = total_reviews_tag.text
     total_reviews = int(re.search('\d+', total_reviews_str).group())
+
+    # alternative way to find total reviews
+    # tag = soup.find("script", type="application/ld+json")
+    # json_object = json.loads(tag.contents[0])
+    # numresto = json_object["aggregateRating"]['reviewCount']
 
     return total_reviews
 
@@ -130,7 +134,6 @@ def crawl_resto(url, writer):
     Returns:
         None, modifies the csv file in place
     '''
-
     html = read_url(url)
     soup = bs4.BeautifulSoup(html, "lxml")
     total_reviews = get_total_reviews(soup)
@@ -184,7 +187,7 @@ def crawl_city(url):
     return city_restos
 
 
-def crawl_and_scrape(city_url="https://www.yelp.com/search?find_desc=&find_loc=Chicago%2C%20IL", csv_filename="reviews.csv"):
+def crawl_and_scrape(city_url="https://www.yelp.com/search?find_desc=&find_loc=Chicago%2C%20IL", csv_filename="scraped_data/all_reviews.csv"):
     '''
 
     Returns:
@@ -196,7 +199,7 @@ def crawl_and_scrape(city_url="https://www.yelp.com/search?find_desc=&find_loc=C
         csvwriter = csv.writer(f)
         csvwriter.writerow(["Rating", "Text"])
         for resto in city_restos:
-            print(resto + "done")
+            print("crawling this url" + " " + resto)
             crawl_resto(resto, csvwriter)
             # Random sleep to avoid being banned by Yelp
             time.sleep(random.randint(1, 3))

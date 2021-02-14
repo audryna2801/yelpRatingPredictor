@@ -211,9 +211,6 @@ def crawl_and_scrape(resto_lists_csv="all_restos_lst.csv", scraped_dir="scraped_
         reader = csv.reader(f)
         resto_list = list(reader)
 
-    # print(type(resto_list[0][0]))
-    # print(resto_list)
-
     for i, resto in enumerate(resto_list):
         resto_csv = scraped_dir + str(i) + ".csv"
         print("crawling this url" + " " + resto[0])
@@ -221,6 +218,5 @@ def crawl_and_scrape(resto_lists_csv="all_restos_lst.csv", scraped_dir="scraped_
             csvwriter = csv.writer(f)
             csvwriter.writerow(["Rating", "Text"])
             crawl_resto(resto[0].strip("'"), csvwriter)
-
         # Random sleep to avoid being banned by Yelp
         time.sleep(random.randint(1, 3))

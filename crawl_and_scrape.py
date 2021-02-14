@@ -99,6 +99,13 @@ def get_reviews_from_page(url, writer):
     html = read_url(url)
     soup = bs4.BeautifulSoup(html, "lxml")
     tag = soup.find("script", type="application/ld+json")
+
+    if not tag:
+        return None
+
+    # while not tag:
+    #     tag = soup.find("script", type="application/ld+json")
+
     json_object = json.loads(tag.contents[0])
     reviews = json_object["review"]
 
@@ -115,15 +122,18 @@ def get_total_reviews(soup):
     Returns: 
         (int) total number reviews for a restaurant
     '''
-    total_reviews_tag = soup.find(
-        "span", class_="text__373c0__2Kxyz text-color--white__373c0__22aE8 text-align--left__373c0__2XGa- text-weight--semibold__373c0__2l0fe text-size--large__373c0__3t60B")
-    total_reviews_str = total_reviews_tag.text
-    total_reviews = int(re.search('\d+', total_reviews_str).group())
+    # total_reviews_tag = soup.find(
+    #     "span", class_="text__373c0__2Kxyz text-color--white__373c0__22aE8 text-align--left__373c0__2XGa- text-weight--semibold__373c0__2l0fe text-size--large__373c0__3t60B")
+    # total_reviews_str = total_reviews_tag.text
+    # total_reviews = int(re.search('\d+', total_reviews_str).group())
 
     # alternative way to find total reviews
-    # tag = soup.find("script", type="application/ld+json")
-    # json_object = json.loads(tag.contents[0])
-    # numresto = json_object["aggregateRating"]['reviewCount']
+
+    tag = soup.find("script", type="application/ld+json")
+    while not tag:
+        tag = soup.find("script", type="application/ld+json")
+    json_object = json.loads(tag.contents[0])
+    total_reviews = json_object["aggregateRating"]['reviewCount']
 
     return total_reviews
 
@@ -147,6 +157,7 @@ def crawl_resto(url, writer):
         get_reviews_from_page(review_page, writer)
         # Random sleep to avoid being banned by Yelp
         time.sleep(random.randint(1, 3))
+        print('success at page' + str(review_page))
 
 
 def get_total_restos(soup):
@@ -187,19 +198,25 @@ def crawl_city(url):
     return city_restos
 
 
-def crawl_and_scrape(city_url="https://www.yelp.com/search?find_desc=&find_loc=Chicago%2C%20IL", csv_filename="scraped_data/all_reviews.csv"):
+def crawl_and_scrape(resto_lists_csv="all_restos_lst.csv", csv_filename="scraped_data/all_reviews.csv"):
     '''
 
     Returns:
         None, writes the csv file in place
     '''
-    city_restos = crawl_city(city_url)
+    with open(resto_lists_csv, newline='') as f:
+        reader = csv.reader(f)
+        resto_list = list(reader)
+
+    # print(type(resto_list[0][0]))
+    # print(resto_list)
 
     with open(csv_filename, "w") as f:
         csvwriter = csv.writer(f)
         csvwriter.writerow(["Rating", "Text"])
-        for resto in city_restos:
-            print("crawling this url" + " " + resto)
-            crawl_resto(resto, csvwriter)
+        for resto in resto_list:
+            print("crawling this url" + " " + resto[0])
+            print(resto[0].strip("'"))
+            crawl_resto(resto[0].strip("'"), csvwriter)
             # Random sleep to avoid being banned by Yelp
             time.sleep(random.randint(1, 3))

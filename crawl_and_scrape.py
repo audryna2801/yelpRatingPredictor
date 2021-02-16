@@ -105,7 +105,7 @@ def get_reviews_from_page(url, writer):
         counter = 20
         for _ in range(counter):
             tag = soup.find("script", type="application/ld+json")
-            time.sleep(random.randint(3, 5))
+            time.sleep(random.randint(1, 3))
             if tag:
                 break
         if not tag:
@@ -136,7 +136,7 @@ def get_total_reviews(soup):
         counter = 20
         for _ in range(counter):
             tag = soup.find("script", type="application/ld+json")
-            time.sleep(random.randint(3, 5))
+            time.sleep(random.randint(1, 3))
             if tag:
                 break
         if not tag:
@@ -174,7 +174,7 @@ def crawl_resto(url, writer):
         get_reviews_from_page(review_page, writer)
 
         # Random sleep to avoid being banned by Yelp
-        time.sleep(random.randint(3, 5))
+        time.sleep(random.randint(1, 3))
 
 
 def get_total_restos(soup):
@@ -211,7 +211,7 @@ def crawl_city(url):
     city_restos = []
     for resto_page in resto_pages:
         city_restos += get_links_from_page(resto_page)
-        time.sleep(random.randint(3, 5))
+        time.sleep(random.randint(1, 3))
 
     return city_restos
 
@@ -223,6 +223,7 @@ def crawl_and_scrape(city_url="https://www.yelp.com/search?find_desc=&find_loc=C
         None, writes the csv file in place
     '''
     city_restos = crawl_city(city_url)
+    print(city_restos)
 
     with open(csv_filename, "w") as f:
         csvwriter = csv.writer(f)
@@ -230,4 +231,4 @@ def crawl_and_scrape(city_url="https://www.yelp.com/search?find_desc=&find_loc=C
         for resto in city_restos:
             crawl_resto(resto, csvwriter)
             # Random sleep to avoid being banned by Yelp
-            time.sleep(random.randint(3, 5))
+            time.sleep(random.randint(1, 3))

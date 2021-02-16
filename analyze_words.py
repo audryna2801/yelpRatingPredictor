@@ -2,6 +2,7 @@ import csv
 import pandas as pd
 import unicodedata
 import sys
+import math
 import nltk
 nltk.download('wordnet')
 
@@ -50,4 +51,82 @@ def processing(df):
 #def parse_words():
     #pass
 
+# ↓ From PA3 ↓
 
+def count_tokens(tokens):
+    '''
+    Counts each distinct token (entity) in a list of tokens.
+
+    Inputs:
+        tokens: list of tokens (must be immutable)
+
+    Returns: dictionary that maps tokens to counts
+    '''
+    rv = {}
+    for tok in tokens:
+        # Initialize entry if unseen; always increment count
+        rv[tok] = rv.get(tok, 0) + 1
+
+    return rv
+
+def compute_idf(docs):
+    '''
+    Calculate the inverse document frequency (idf) for each term (t) in a
+    collection of documents (D). By definition,
+      idf(t, D) = log(total number of documents in D / number of documents
+                      containing t).
+    Helper function for find_salient.
+    
+    Inputs:
+        docs: list of lists of tokens
+    
+    Returns: dictionary that maps each term to its idf
+    '''
+    # Determine total number of documents in total
+    num_docs = len(docs)
+
+    # Determine number of documents containing relevant term
+    rv = {}
+    for doc in docs:
+        seen_terms = []
+        for term in doc:
+            if term not in seen_terms:
+                rv[term] = rv.get(term, 0) + 1
+            seen_terms.append(term)
+
+    # Calculate idf
+    for term, num_with_term in rv.items():
+        rv[term] = math.log(num_docs / num_with_term)
+
+    return rv
+
+SAMPLE_DOCS = [['i', 'love', 'food', 'so', 'much'],
+               ['good', 'service'],
+               ['i', 'hate', 'this', 'restaurant']]
+
+# SAMPLE_OUTPUT:
+#           i      love      food        so      much      good   service      hate      this  restaurant
+# 0  0.405465  1.098612  1.098612  1.098612  1.098612       NaN       NaN       NaN       NaN         NaN
+# 1       NaN       NaN       NaN       NaN       NaN  1.098612  1.098612       NaN       NaN         NaN
+# 2  0.405465       NaN       NaN       NaN       NaN       NaN       NaN  1.098612  1.098612    1.098612
+
+def tfidf_vectorize(revs, idf):
+    '''
+    In:
+      - list of lists of strings, e.g., [["i", "love", "food"],
+                                         ["i", "hate", "food"]]
+      - dictionary (each token -> its IDF)
+    
+    Out: pandas DataFrame, e.g.,      i  love  food  hate
+                                 0  0.5   0.5   0.5   0.0
+                                 1  0.3   0.0   0.4   0.5
+    '''
+    tok_to_freq_by_rev = [count_tokens(rev) for rev in revs]
+
+    for rev in tok_to_freq_by_rev:
+        max_freq = max(rev.values())
+        for w in rev:
+            tf = 0.5 + 0.5 * (rev[w] / max_freq)
+            rev[w] = tf * idf[w]            
+    
+    return pd.DataFrame(tok_to_freq_by_rev)

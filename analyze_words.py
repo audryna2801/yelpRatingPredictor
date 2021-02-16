@@ -2,6 +2,8 @@ import csv
 import pandas as pd
 import unicodedata
 import sys
+import nltk
+nltk.download('wordnet')
 
 from nltk.stem import WordNetLemmatizer
 

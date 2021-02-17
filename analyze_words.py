@@ -1,4 +1,5 @@
 from nltk.stem import WordNetLemmatizer
+from textblob import TextBlob
 import csv
 import re
 import pandas as pd
@@ -43,7 +44,12 @@ def processing(text):
     '''
 
     lemmatizer = WordNetLemmatizer()
-    split_text = text.split()
+
+    # Try to fix spelling errors before splitting
+    textBlb = TextBlob(text)
+    corrected_text = textBlb.correct()
+
+    split_text = corrected_text.split()
     new_text = []
 
     for word in split_text:

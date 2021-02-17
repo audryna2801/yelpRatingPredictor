@@ -54,7 +54,7 @@ def processing(df):
 # def parse_words():
     # pass
 
-# ↓ From PA3 ↓
+# Vectorizing Stage
 
 
 def count_tokens(tokens):
@@ -111,23 +111,23 @@ SAMPLE_DOCS = [['i', 'love', 'food', 'so', 'much'],
 # 2  0.405465       NaN       NaN       NaN       NaN       NaN       NaN  1.098612  1.098612    1.098612
 
 
-def tfidf_vectorize(revs, idf):
+def tfidf_vectorize(revs):
     '''
     In:
       - list of lists of strings, e.g., [["i", "love", "food"],
                                          ["i", "hate", "food"]]
-      - dictionary (each token -> its IDF)
 
     Out: pandas DataFrame, e.g.,      i  love  food  hate
                                  0  0.5   0.5   0.5   0.0
                                  1  0.3   0.0   0.4   0.5
     '''
     tok_to_freq_by_rev = [count_tokens(rev) for rev in revs]
+    idf = compute_idf(revs)
 
     for rev in tok_to_freq_by_rev:
         max_freq = max(rev.values())
-        for w in rev:
-            tf = 0.5 + 0.5 * (rev[w] / max_freq)
-            rev[w] = tf * idf[w]
+        for tok in rev:
+            tf = 0.5 + 0.5 * (rev[tok] / max_freq)
+            rev[tok] = tf * idf[tok]
 
     return pd.DataFrame(tok_to_freq_by_rev)

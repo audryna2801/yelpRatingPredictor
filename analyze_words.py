@@ -1,5 +1,6 @@
 from nltk.stem import WordNetLemmatizer
 import csv
+import re
 import pandas as pd
 import unicodedata
 import sys
@@ -11,6 +12,8 @@ nltk.download('wordnet')
 STOP_WORDS = ["a", "an", "the", "this", "that", "of", "for", "or",
               "and", "on", "to", "be", "if", "we", "you", "in", "is",
               "at", "it", "rt", "mt", "with"]
+
+STOP_PREFIXES = ("@", "#", "http", "&amp")
 
 
 def keep_chr(ch):
@@ -44,13 +47,24 @@ def processing(text):
     new_text = []
 
     for word in split_text:
+        # Handles trailing and inner punctuations
         word = word.strip(PUNCTUATION)
         word = word.replace("&apos;", "'")
+        word = word.replace('quot;', '"')
+        word = word.replace('&quot', '"')
+
         word = word.lower()
         lemmatizer.lemmatize(word)
-        word = word.split('/')
-        if word:
-            new_text += word
+
+        # Splits words if / present
+        if '/' in word:
+            words = word.split('/')
+            new_text += [word for word in words if not bool(
+                re.search(r'\d', word)) and not word.startswith(STOP_PREFIXES)]
+        else:
+            if (word and not bool(re.search(r'\d', word))
+                    and not word.startswith(STOP_PREFIXES)):
+                new_text.append(word)
 
     return new_text
 

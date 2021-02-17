@@ -33,26 +33,41 @@ df = pd.DataFrame(data, columns=['Rating', 'Text'])
 # df[reviews].apply()
 
 
-def processing(df):
-    X_array = []
-    lemmatizer = WordNetLemmatizer()
-    for i, row in df.iterrows():
-        processed_review = []
-    # this is def wrong need to fix, need to be able to iterate through the paragraph of the review itself
-        review = row["Text"]
-        # print(review)
-        split_review = review.split()
-        for word in split_review:
-            word = word.strip(PUNCTUATION)
-            word = word.lower()
-            lemmatizer.lemmatize(word)
-            if word not in set(STOP_WORDS) and not word.startswith(STOP_PREFIXES) and len(word) > 0:
-                processed_review.append(word)
-        X_array.append(processed_review)
-    print(X_array)
+def processing(text):
+    '''
+    Converts a text of a review  into a list of strings
 
-# def parse_words():
-    # pass
+    Inputs:
+        text (str): text representing one review
+
+    Returns:
+        list of words
+    '''
+
+    lemmatizer = WordNetLemmatizer()
+    split_text = text.split()
+    new_text = []
+
+    for word in split_text:
+        word = word.strip(PUNCTUATION)
+        word = word.lower()
+        lemmatizer.lemmatize(word)
+        if word:
+            new_text.append(word)
+
+    return new_text
+
+
+def get_stop_words():
+    pass
+
+
+def tokenize(df):
+
+    tokens = [processing(text) for text in df.Text]
+
+    return tokens
+
 
 # Vectorizing Stage
 

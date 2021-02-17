@@ -16,21 +16,16 @@ STOP_WORDS = ["a", "an", "the", "this", "that", "of", "for", "or",
 def keep_chr(ch):
     '''
     Find all characters that are classifed as punctuation in Unicode
-    (except #, @, &) and combine them into a single string.
+    and combine them into a single string.
     '''
-    return unicodedata.category(ch).startswith('P') and \
-        (ch not in ("#", "@", "&"))
+    return unicodedata.category(ch).startswith('P')
 
 
 PUNCTUATION = " ".join([chr(i) for i in range(sys.maxunicode)
                         if keep_chr(chr(i))])
 
-STOP_PREFIXES = ("@", "#", "http", "&amp")
-
 data = pd.read_csv("./test_data/babareba.csv")
 df = pd.DataFrame(data, columns=['Rating', 'Text'])
-
-# df[reviews].apply()
 
 
 def processing(text):
@@ -50,10 +45,12 @@ def processing(text):
 
     for word in split_text:
         word = word.strip(PUNCTUATION)
+        word = word.replace("&apos;", "'")
         word = word.lower()
         lemmatizer.lemmatize(word)
+        word = word.split('/')
         if word:
-            new_text.append(word)
+            new_text += word
 
     return new_text
 

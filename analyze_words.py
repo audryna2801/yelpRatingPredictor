@@ -1,3 +1,4 @@
+from nltk.stem import WordNetLemmatizer
 import csv
 import pandas as pd
 import unicodedata
@@ -6,11 +7,11 @@ import math
 import nltk
 nltk.download('wordnet')
 
-from nltk.stem import WordNetLemmatizer
 
 STOP_WORDS = ["a", "an", "the", "this", "that", "of", "for", "or",
               "and", "on", "to", "be", "if", "we", "you", "in", "is",
               "at", "it", "rt", "mt", "with"]
+
 
 def keep_chr(ch):
     '''
@@ -20,24 +21,26 @@ def keep_chr(ch):
     return unicodedata.category(ch).startswith('P') and \
         (ch not in ("#", "@", "&"))
 
+
 PUNCTUATION = " ".join([chr(i) for i in range(sys.maxunicode)
                         if keep_chr(chr(i))])
 
 STOP_PREFIXES = ("@", "#", "http", "&amp")
 
 data = pd.read_csv("./test_data/babareba.csv")
-df = pd.DataFrame(data, columns = ['Rating', 'Text'])
+df = pd.DataFrame(data, columns=['Rating', 'Text'])
 
-#df[reviews].apply()
+# df[reviews].apply()
+
 
 def processing(df):
-    X_array = [] 
+    X_array = []
     lemmatizer = WordNetLemmatizer()
     for i, row in df.iterrows():
         processed_review = []
-    #this is def wrong need to fix, need to be able to iterate through the paragraph of the review itself
+    # this is def wrong need to fix, need to be able to iterate through the paragraph of the review itself
         review = row["Text"]
-        #print(review)
+        # print(review)
         split_review = review.split()
         for word in split_review:
             word = word.strip(PUNCTUATION)
@@ -48,10 +51,11 @@ def processing(df):
         X_array.append(processed_review)
     print(X_array)
 
-#def parse_words():
-    #pass
+# def parse_words():
+    # pass
 
 # ↓ From PA3 ↓
+
 
 def count_tokens(tokens):
     '''
@@ -69,6 +73,7 @@ def count_tokens(tokens):
 
     return rv
 
+
 def compute_idf(docs):
     '''
     Calculate the inverse document frequency (idf) for each term (t) in a
@@ -76,29 +81,24 @@ def compute_idf(docs):
       idf(t, D) = log(total number of documents in D / number of documents
                       containing t).
     Helper function for find_salient.
-    
+
     Inputs:
         docs: list of lists of tokens
-    
+
     Returns: dictionary that maps each term to its idf
     '''
-    # Determine total number of documents in total
     num_docs = len(docs)
 
-    # Determine number of documents containing relevant term
-    rv = {}
-    for doc in docs:
-        seen_terms = []
-        for term in doc:
-            if term not in seen_terms:
-                rv[term] = rv.get(term, 0) + 1
-            seen_terms.append(term)
+    idf_dict = {}
+    docs_set = [set(doc) for doc in docs]
+    tokens = set.union(*docs_set)
 
-    # Calculate idf
-    for term, num_with_term in rv.items():
-        rv[term] = math.log(num_docs / num_with_term)
+    for token in tokens:
+        docs_with_token = sum([1 for doc in docs_set if (token in doc)])
+        idf_dict[token] = math.log(num_docs / docs_with_token)
 
-    return rv
+    return idf_dict
+
 
 SAMPLE_DOCS = [['i', 'love', 'food', 'so', 'much'],
                ['good', 'service'],
@@ -110,13 +110,14 @@ SAMPLE_DOCS = [['i', 'love', 'food', 'so', 'much'],
 # 1       NaN       NaN       NaN       NaN       NaN  1.098612  1.098612       NaN       NaN         NaN
 # 2  0.405465       NaN       NaN       NaN       NaN       NaN       NaN  1.098612  1.098612    1.098612
 
+
 def tfidf_vectorize(revs, idf):
     '''
     In:
       - list of lists of strings, e.g., [["i", "love", "food"],
                                          ["i", "hate", "food"]]
       - dictionary (each token -> its IDF)
-    
+
     Out: pandas DataFrame, e.g.,      i  love  food  hate
                                  0  0.5   0.5   0.5   0.0
                                  1  0.3   0.0   0.4   0.5
@@ -127,6 +128,6 @@ def tfidf_vectorize(revs, idf):
         max_freq = max(rev.values())
         for w in rev:
             tf = 0.5 + 0.5 * (rev[w] / max_freq)
-            rev[w] = tf * idf[w]            
-    
+            rev[w] = tf * idf[w]
+
     return pd.DataFrame(tok_to_freq_by_rev)

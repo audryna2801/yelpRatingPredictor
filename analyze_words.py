@@ -100,6 +100,23 @@ def remove_stop(stop_words, tokens):
     pass
 
 
+def make_ngrams(text, n):
+    '''
+    Takes a tweet and create n-grams
+
+    Input: 
+        tweet: a dictionary of a single tweet
+        n: the length of the tuple of strings
+
+    Returns: a list of tuples of strings
+    '''
+
+    text = processing(text)
+    ngrams = [tuple(text[i:i+n]) for i in range(len(text) - n + 1)]
+
+    return ngrams
+
+
 # Vectorizing Stage
 def count_tokens(tokens):
     '''

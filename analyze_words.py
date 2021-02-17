@@ -1,5 +1,7 @@
 from nltk.stem import WordNetLemmatizer
 from textblob import TextBlob
+from nltk import FreqDist
+import itertools
 import csv
 import re
 import pandas as pd
@@ -46,10 +48,10 @@ def processing(text):
     lemmatizer = WordNetLemmatizer()
 
     # Try to fix spelling errors before splitting
-    textBlb = TextBlob(text)
-    corrected_text = textBlb.correct()
+    #textBlb = TextBlob(text)
+    #corrected_text = textBlb.correct()
 
-    split_text = corrected_text.split()
+    split_text = text.split()
     new_text = []
 
     for word in split_text:
@@ -75,20 +77,30 @@ def processing(text):
     return new_text
 
 
-def get_stop_words():
-    pass
+def get_stop_words(tokens):
+    '''
+    Inputs:
+        - tokens (list of list of strings): output of tokenize(df)
+
+    Returns: 
+        - list of 10 most common words
+    '''
+    all_words = list(itertools.chain.from_iterable(tokens))
+    freq_dist = FreqDist(all_words)
+    stop_words = freq_dist.most_common(10)
+
+    return [word[0] for word in stop_words]
 
 
 def tokenize(df):
+    return [processing(text) for text in df.Text]
 
-    tokens = [processing(text) for text in df.Text]
 
-    return tokens
+def remove_stop(stop_words, tokens):
+    pass
 
 
 # Vectorizing Stage
-
-
 def count_tokens(tokens):
     '''
     Counts each distinct token (entity) in a list of tokens.
@@ -163,3 +175,16 @@ def tfidf_vectorize(revs):
             rev[tok] = tf * idf[tok]
 
     return pd.DataFrame(tok_to_freq_by_rev)
+
+
+def get_final_df(df):
+    tokens = tokenize(df)
+    stop_words = get_stop_words(tokens)
+    cleaned_tokens = remove_stop(stop_words, tokens)
+
+    x_values = tfidf_vectorize(cleaned_tokens)
+    y_values = df.Rating
+
+    final_df = x_values.insert(0, y_values)
+
+    return final_df

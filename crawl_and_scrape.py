@@ -18,6 +18,11 @@ def read_url(my_url):
     '''
     Loads html from url. Returns result or "" if the read
     fails.
+
+    Inputs:
+        - my_url (str)
+
+    Returns: the html
     '''
 
     pm = urllib3.PoolManager(
@@ -29,8 +34,14 @@ def read_url(my_url):
 
 def is_absolute_url(url):
     '''
-    Is url an absolute URL?
+    Determines if url is an absolute url
+
+    Inputs:
+        - url (str)
+
+    Returns: boolean
     '''
+
     if url == "":
         return False
     return urllib.parse.urlparse(url).netloc != ""
@@ -46,7 +57,7 @@ def convert_if_relative_url(new_url, main_url=MAIN_URL):
         new_url: the path to the restaurants
         main_url: absolute URL
 
-    Outputs:
+    Returns:
         new absolute URL or None, if cannot determine that
         new_url is a relative URL.
 
@@ -73,36 +84,65 @@ def convert_if_relative_url(new_url, main_url=MAIN_URL):
         return urllib.parse.urljoin(main_url, new_url)
 
 
-# crawling and scraping functions
-def get_links_from_page(url):
+# Crawling and scraping functions
+def get_total_reviews(soup, counter):
     '''
+    Given a soup object representing a page,
+    it will get the total number of reviews to
+    help the program determine how many pages of 
+    reviews to scrape.
 
-    Returns:
-        set of restaurant links from the page
+    Inputs:
+        - soup (bs4 object)
+        - counter (int): if the program gets blocked by Yelp,
+            how many times should it try again before giving up
+            and skipping (high number corresponds to longer run-time, 
+            but less pages being skipped)
+
+    Returns: 
+        (int) total number reviews for a restaurant
     '''
-    html = read_url(url)
-    soup = bs4.BeautifulSoup(html, "lxml")
-    all_tags = soup.find_all("a", href=True)
-    all_links = [tag.get("href") for tag in all_tags]
-    good_links = {convert_if_relative_url(link) for link in all_links if link.startswith(
-        '/biz') and ("?" not in link)}
+    tag = soup.find("script", type="application/ld+json")
 
-    return good_links
+    # Tries again if tag cannot be found, number of tries depend on counter
+    if not tag:
+        for _ in range(counter):
+            tag = soup.find("script", type="application/ld+json")
+            time.sleep(random.randint(1, 3))
+            if tag:
+                break
+        if not tag:
+            return None
+
+    json_object = json.loads(tag.contents[0])
+    total_reviews = json_object["aggregateRating"]['reviewCount']
+
+    return total_reviews
 
 
-def get_reviews_from_page(url, writer):
+def get_reviews_from_page(url, writer, counter):
     '''
+    Given a url and csv writer object, writes all the reviews
+    from a given page to the csv
+
+    Inputs: 
+        - url (str)
+        - writer (csv writer object)
+        - counter (int): if the program gets blocked by Yelp,
+            how many times should it try again before giving up
+            and skipping (high number corresponds to longer run-time, 
+            but less pages being skipped)
 
     Returns:
         None, modifies the csv file in place
     '''
+
     html = read_url(url)
     soup = bs4.BeautifulSoup(html, "lxml")
     tag = soup.find("script", type="application/ld+json")
 
-    # Try again 20 times if tag cannot be found
+    # Tries again if tag cannot be found, number of tries depend on counter
     if not tag:
-        counter = 20
         for _ in range(counter):
             tag = soup.find("script", type="application/ld+json")
             time.sleep(random.randint(1, 3))
@@ -124,39 +164,24 @@ def get_reviews_from_page(url, writer):
         writer.writerow(row)
 
 
-def get_total_reviews(soup):
+def crawl_resto(url, writer, counter):
     '''
+    Crawls the restaurant and get all reviews from the restaurant
 
-    Returns: 
-        (int) total number reviews for a restaurant
-    '''
-    tag = soup.find("script", type="application/ld+json")
-
-    if not tag:
-        counter = 20
-        for _ in range(counter):
-            tag = soup.find("script", type="application/ld+json")
-            time.sleep(random.randint(1, 3))
-            if tag:
-                break
-        if not tag:
-            return None
-
-    json_object = json.loads(tag.contents[0])
-    total_reviews = json_object["aggregateRating"]['reviewCount']
-
-    return total_reviews
-
-
-def crawl_resto(url, writer):
-    '''
+    Inputs:
+        - url (str): the url
+        - writer (csv writer): the writer object
+        - counter (int): if the program gets blocked by Yelp,
+            how many times should it try again before giving up
+            and skipping (high number corresponds to longer run-time, 
+            but less pages being skipped)
 
     Returns:
         None, modifies the csv file in place
     '''
     html = read_url(url)
     soup = bs4.BeautifulSoup(html, "lxml")
-    total_reviews = get_total_reviews(soup)
+    total_reviews = get_total_reviews(soup, counter)
 
     if not total_reviews:
         print('failure at this restaurant ' + str(url))
@@ -171,7 +196,7 @@ def crawl_resto(url, writer):
         review_pages.append(url + "?start=" + str(i))
 
     for review_page in review_pages:
-        get_reviews_from_page(review_page, writer)
+        get_reviews_from_page(review_page, writer, counter)
 
         # Random sleep to avoid being banned by Yelp
         time.sleep(random.randint(1, 3))
@@ -179,10 +204,15 @@ def crawl_resto(url, writer):
 
 def get_total_restos(soup):
     '''
+    Given a soup object representing a page,
+    it will get the total number of restaurants to
+    help the program determine how many pages of 
+    restaurants to scrape.
 
     Returns:
         (int) number of restaurants in the city
     '''
+
     total_restos_tag = soup.find(
         "span", class_="text__09f24__1RhSS text-color--black-extra-light__09f24__2ZRGr text-align--left__09f24__ceIWW")
     total_restos_str = total_restos_tag.text
@@ -192,8 +222,33 @@ def get_total_restos(soup):
     return total_restos_page * 10
 
 
+def get_links_from_page(url):
+    '''
+    Given a url, scrapes all other urls that refer to restaurant
+    home pages and converts it to absolute url
+
+    Inputs: 
+        - url (str): the url
+
+    Returns: set of restaurant links from the page
+    '''
+    html = read_url(url)
+    soup = bs4.BeautifulSoup(html, "lxml")
+    all_tags = soup.find_all("a", href=True)
+    all_links = [tag.get("href") for tag in all_tags]
+    good_links = {convert_if_relative_url(link) for link in all_links if link.startswith(
+        '/biz') and ("?" not in link)}
+
+    return good_links
+
+
 def crawl_city(url):
     '''
+    Crawls the city and gets all the urls of restaurants
+    within that city
+
+    Inputs:
+        - url (str): the url
 
     Returns: 
         list of restaurant links in that city
@@ -211,24 +266,36 @@ def crawl_city(url):
     city_restos = []
     for resto_page in resto_pages:
         city_restos += get_links_from_page(resto_page)
+        # Random sleep to avoid being banned by Yelp
         time.sleep(random.randint(1, 3))
 
     return city_restos
 
 
-def crawl_and_scrape(city_url="https://www.yelp.com/search?find_desc=&find_loc=Chicago%2C%20IL",
+def crawl_and_scrape(counter, city_url="https://www.yelp.com/search?find_desc=&find_loc=Chicago%2C%20IL",
                      csv_filename="reviews.csv"):
     '''
+    Crawls the city of Chicago, unless another city url is given,
+    and write all reviews from restaurants in that city to a csv file.
+
+    Inputs:
+        - counter (int): if the program gets blocked by Yelp,
+            how many times should it try again before giving up
+            and skipping (high number corresponds to longer run-time, 
+            but less pages being skipped)
+        - city_url (str): the yelp url of the city
+        - csv_filename (str): the name of the final csv file
+
     Returns:
         None, writes the csv file in place
     '''
+
     city_restos = crawl_city(city_url)
-    print(city_restos)
 
     with open(csv_filename, "w") as f:
         csvwriter = csv.writer(f)
         csvwriter.writerow(["Rating", "Text"])
         for resto in city_restos:
-            crawl_resto(resto, csvwriter)
+            crawl_resto(resto, csvwriter, counter)
             # Random sleep to avoid being banned by Yelp
             time.sleep(random.randint(1, 3))

@@ -97,11 +97,7 @@ def remove_stop(stop_words, tokens):
         list of string representing words in a single review
     '''
 
-    for token in list(tokens):
-        if token in stop_words:
-            tokens.remove(token)
-
-    return tokens
+    return [token for token in tokens if token not in stop_words]
 
 
 def make_ngrams(tokens, n):

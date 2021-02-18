@@ -64,31 +64,35 @@ def processing(text):
                 re.search(r'\d', word)) and not word.startswith(STOP_PREFIXES)]
         else:
             if (word and not bool(re.search(r'\d', word))
-                    and not word.startswith(STOP_PREFIXES)):
+                and not word.startswith(STOP_PREFIXES)):
                 new_text.append(word)
 
     return new_text
 
 
-def get_stop_words(all_tokens):
+def get_stop_words(all_tokens, num_stop_words):
     '''
+    Obtain the particular stop words (most frequently occurring words) in the
+    sample, which may differ from a list of generic stop words.
+
     Inputs:
         - all_tokens (list of list of strings): a list of list of all tokens
+        - num_stop_words (int): number of stop words to remove
 
     Returns:
-        - list of 10 most common words
+        - list of num_stop_words most common words
     '''
     all_words = list(itertools.chain.from_iterable(all_tokens))
     freq_dist = FreqDist(all_words)
-    stop_words = freq_dist.most_common(10)
+    stop_words = freq_dist.most_common(num_stop_words)
 
     return [word[0] for word in stop_words]
 
 
 def remove_stop(stop_words, tokens):
     '''
-    Takes the list of words from a single review and removes
-    generated stop words
+    Take the list of words from a single review and remove
+    generated stop words.
 
     Input:
         text (list of str): list of processed words in a review
@@ -102,7 +106,7 @@ def remove_stop(stop_words, tokens):
 
 def make_ngrams(tokens, n):
     '''
-    Takes the list of words from a single review and create n-grams
+    Take the list of words from a single review and create n-grams
 
     Input:
         text (list of str): list of processed words in a review
@@ -123,7 +127,7 @@ def make_ngrams(tokens, n):
 # Vectorizing Stage
 def count_tokens(tokens):
     '''
-    Counts each distinct token (entity) in a list of tokens.
+    Count each distinct token (entity) in a list of tokens.
 
     Inputs:
         tokens: list of tokens (must be immutable)
@@ -132,7 +136,6 @@ def count_tokens(tokens):
     '''
     rv = {}
     for tok in tokens:
-        # Initialize entry if unseen; always increment count
         rv[tok] = rv.get(tok, 0) + 1
 
     return rv
@@ -164,26 +167,6 @@ def compute_idf(docs):
     return idf_dict
 
 
-def augmented_freq(doc):
-    '''
-    Compute the augmented term frequency values of the tokens in a document
-
-    Inputs: 
-        doc: a list of tokens
-
-    Returns: dictionary that maps terms to their augmented frequency
-    '''
-
-    token_dict = count_tokens(doc)
-    tf_dict = {}
-    max_count = max(token_dict.values())
-
-    for token, count in token_dict.items():
-        tf_dict[token] = 0.5 + 0.5 * (count / max_count)
-
-    return tf_dict
-
-
 SAMPLE_DOCS = [['i', 'love', 'food', 'so', 'much'],
                ['good', 'service'],
                ['i', 'hate', 'this', 'restaurant']]
@@ -197,13 +180,19 @@ SAMPLE_DOCS = [['i', 'love', 'food', 'so', 'much'],
 
 def tfidf_vectorize(revs):
     '''
+    Calculate the tf_idf for each term per document in a collection of
+    documents. By definiion,
+        tf = 0.5 + 0.5 * (freq_of_term_in_doc / max_freq_in_doc)
+    and
+        tf_idf = tf * idf.
+
     In:
       - list of lists of strings, e.g., [["i", "love", "food"],
                                          ["i", "hate", "food"]]
 
-    Out: pandas DataFrame, e.g.,      i  love  food  hate
-                                 0  0.5   0.5   0.5   0.0
-                                 1  0.3   0.0   0.4   0.5
+    Returns: pandas DataFrame, e.g.,      i  love  food  hate
+                                     0  0.5   0.5   0.5   0.0
+                                     1  0.3   0.0   0.4   0.5
     '''
     tok_to_freq_by_rev = [count_tokens(rev) for rev in revs]
     idf = compute_idf(revs)
@@ -217,7 +206,7 @@ def tfidf_vectorize(revs):
     return pd.DataFrame(tok_to_freq_by_rev).fillna(0)
 
 
-def get_final_df(csv_file, n, stop_removed):
+def get_final_df(csv_file, n, remove_stop, num_stop_words):
     '''
     Given a dataframe with two columns, Rating and Text, 
     returns a dataframe that vectorizes the text and joins it
@@ -226,7 +215,8 @@ def get_final_df(csv_file, n, stop_removed):
     Inputs: 
         df (pd df): the dataframe
         n (int): range of n-grams to use
-        stop_removed (boolean): True if stop words need to be removed
+        remove_stop (boolean): True if stop words need to be removed
+        num_stop_words (int): number of stop words to remove
 
     Returns: 
         final dataframe for modelling
@@ -235,8 +225,8 @@ def get_final_df(csv_file, n, stop_removed):
     df = pd.read_csv(csv_file)
     all_tokens = [processing(text) for text in df.Text]
 
-    if stop_removed:
-        stop_words = get_stop_words(all_tokens)
+    if remove_stop:
+        stop_words = get_stop_words(all_tokens, x)
         all_tokens = [remove_stop(stop_words, tokens) for tokens in all_tokens]
 
     ngrams = [make_ngrams(tokens, n) for tokens in all_tokens]

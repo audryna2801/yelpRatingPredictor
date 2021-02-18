@@ -9,7 +9,7 @@ import unicodedata
 import sys
 import math
 import nltk
-nltk.download('wordnet')
+# nltk.download('wordnet')
 
 
 STOP_PREFIXES = ("@", "#", "http", "&amp")
@@ -192,9 +192,6 @@ SAMPLE_DOCS = [['i', 'love', 'food', 'so', 'much'],
                ['good', 'service'],
                ['i', 'hate', 'this', 'restaurant']]
 
-sample = ['love food so much', 'good service', 'hate this restaurant']
-
-
 # SAMPLE_OUTPUT:
 #           i      love      food        so      much      good   service      hate      this  restaurant
 # 0  0.405465  1.098612  1.098612  1.098612  1.098612       NaN       NaN       NaN       NaN         NaN
@@ -232,7 +229,7 @@ def get_final_df(csv_file, n, stop_removed):
 
     Inputs: 
         df (pd df): the dataframe
-        n (int): range of  n-grams to use
+        n (int): range of n-grams to use
         stop_removed (boolean): True if stop words need to be removed
 
     Returns: 
@@ -249,7 +246,7 @@ def get_final_df(csv_file, n, stop_removed):
     ngrams = [make_ngrams(tokens, n) for tokens in all_tokens]
 
     final_df = tfidf_vectorize(ngrams)
-    y_values = df.Rating
+    y_values = df.Rating.astype('category')
 
     final_df.insert(0, "Rating", y_values)
 

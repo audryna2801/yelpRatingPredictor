@@ -4,7 +4,7 @@ from sklearn.svm import LinearSVC, SVC
 from sklearn import linear_model, tree, neighbors
 from sklearn.cross_validation import train_test_split, cross_val_score
 from sklearn.feature_selection import SelectFromModel
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, classification_report
 from sklearn import preprocessing
 from nltk import pos_tag
 import time

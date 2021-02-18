@@ -64,7 +64,7 @@ def processing(text):
                 re.search(r'\d', word)) and not word.startswith(STOP_PREFIXES)]
         else:
             if (word and not bool(re.search(r'\d', word))
-                and not word.startswith(STOP_PREFIXES)):
+                    and not word.startswith(STOP_PREFIXES)):
                 new_text.append(word)
 
     return new_text
@@ -206,7 +206,7 @@ def tfidf_vectorize(revs):
     return pd.DataFrame(tok_to_freq_by_rev).fillna(0)
 
 
-def get_final_df(csv_file, n, remove_stop, num_stop_words):
+def get_final_df(csv_file, n=3, remove_stop=True, num_stop_words=10):
     '''
     Given a dataframe with two columns, Rating and Text, 
     returns a dataframe that vectorizes the text and joins it

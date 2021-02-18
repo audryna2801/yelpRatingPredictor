@@ -63,7 +63,9 @@ def main(csv_file, testing_fraction):
 
     model = linear_model.SGDClassifier(loss='hinge', alpha=0.0001, penalty='l2',
                                        max_iter=300, tol=None, shuffle=True)
-    model = applyModels(model, x_train, y_train)
+    trained_model = applyModels(model, x_train, y_train)
+    prediction = predictModel(trained_model, x_test)
+    result = evaluateModel(trained_model, prediction, x_test, y_test)
 
     # SAVE MODEL, IDK HOW TO DO THIS HEHE
 

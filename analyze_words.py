@@ -1,3 +1,4 @@
+import nltk
 from nltk.stem import WordNetLemmatizer
 from textblob import TextBlob
 from nltk import FreqDist
@@ -8,8 +9,7 @@ import pandas as pd
 import unicodedata
 import sys
 import math
-import nltk
-# nltk.download('wordnet')
+nltk.download('wordnet')
 
 
 STOP_PREFIXES = ("@", "#", "http", "&amp")
@@ -70,7 +70,7 @@ def processing(text):
     return new_text
 
 
-def get_stop_words(all_tokens, num_stop_words):
+def get_stop_words(all_tokens, num_stop_words=20):
     '''
     Obtain the particular stop words (most frequently occurring words) in the
     sample, which may differ from a list of generic stop words.
@@ -80,7 +80,7 @@ def get_stop_words(all_tokens, num_stop_words):
         - num_stop_words (int): number of stop words to remove
 
     Returns:
-        - list of num_stop_words most common words
+        - list of most common words
     '''
     all_words = list(itertools.chain.from_iterable(all_tokens))
     freq_dist = FreqDist(all_words)
@@ -88,20 +88,20 @@ def get_stop_words(all_tokens, num_stop_words):
 
     return [word[0] for word in stop_words]
 
+# not needed, used directly in get_final_df
+# def remove_stop(stop_words, tokens):
+#     '''
+#     Take the list of words from a single review and remove
+#     stop words.
 
-def remove_stop(stop_words, tokens):
-    '''
-    Take the list of words from a single review and remove
-    generated stop words.
+#     Input:
+#         text (list of str): list of processed words in a review
 
-    Input:
-        text (list of str): list of processed words in a review
+#     Returns:
+#         list of string representing words in a single review
+#     '''
 
-    Returns:
-        list of string representing words in a single review
-    '''
-
-    return [token for token in tokens if token not in stop_words]
+#     return [token for token in tokens if token not in stop_words]
 
 
 def make_ngrams(tokens, n):
@@ -144,9 +144,11 @@ def count_tokens(tokens):
 def compute_idf(docs):
     '''
     Calculate the inverse document frequency (idf) for each term (t) in a
-    collection of documents (D). By definition,
-      idf(t, D) = log(total number of documents in D / number of documents
-                      containing t).
+    collection of documents (D). 
+
+    idf(t, D) = log(total number of documents in D / 
+                    number of documents containing 't').
+
     Helper function for find_salient.
 
     Inputs:
@@ -206,14 +208,14 @@ def tfidf_vectorize(revs):
     return pd.DataFrame(tok_to_freq_by_rev).fillna(0)
 
 
-def get_final_df(csv_file, n=3, remove_stop=True, num_stop_words=10):
+def get_final_df(csv_file, n=3, remove_stop=True, num_stop_words=20):
     '''
     Given a dataframe with two columns, Rating and Text, 
     returns a dataframe that vectorizes the text and joins it
     back with the Rating column.
 
     Inputs: 
-        df (pd df): the dataframe
+        csv_file (csv): csv file containing scraped reviews from Yelp
         n (int): range of n-grams to use
         remove_stop (boolean): True if stop words need to be removed
         num_stop_words (int): number of stop words to remove
@@ -226,8 +228,10 @@ def get_final_df(csv_file, n=3, remove_stop=True, num_stop_words=10):
     all_tokens = [processing(text) for text in df.Text]
 
     if remove_stop:
-        stop_words = get_stop_words(all_tokens, x)
-        all_tokens = [remove_stop(stop_words, tokens) for tokens in all_tokens]
+        stop_words = get_stop_words(all_tokens, num_stop_words)
+        print(stop_words)
+        all_tokens = [[token for token in tokens if token not in stop_words]
+                      for tokens in all_tokens]
 
     ngrams = [make_ngrams(tokens, n) for tokens in all_tokens]
 

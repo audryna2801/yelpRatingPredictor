@@ -201,25 +201,24 @@ def crawl_resto(url, writer, counter):
         # Random sleep to avoid being banned by Yelp
         time.sleep(random.randint(1, 3))
 
+# fIX OR nah?
+# def get_total_restos(soup):
+#     '''
+#     Given a soup object representing a page, it will get the total number of
+#     restaurants to help the program determine how many pages of restaurants to
+#     scrape.
 
-def get_total_restos(soup):
-    '''
-    Given a soup object representing a page,
-    it will get the total number of restaurants to
-    help the program determine how many pages of 
-    restaurants to scrape.
+#     Returns:
+#         (int) number of restaurants in the city
+#     '''
 
-    Returns:
-        (int) number of restaurants in the city
-    '''
+#     total_restos_tag = soup.find(
+#         "span", class_="text__09f24__1RhSS text-color--black-extra-light__09f24__2ZRGr text-align--left__09f24__ceIWW")
+#     total_restos_str = total_restos_tag.text
+#     total_restos_page = int(re.search(r'of (\d+)', total_restos_str)[1])
 
-    total_restos_tag = soup.find(
-        "span", class_="text__09f24__1RhSS text-color--black-extra-light__09f24__2ZRGr text-align--left__09f24__ceIWW")
-    total_restos_str = total_restos_tag.text
-    total_restos_page = int(re.search(r'of (\d+)', total_restos_str)[1])
-
-    # Each page has 10 restaurants, so we multiply number of pages * 10
-    return total_restos_page * 10
+#     # Each page has 10 restaurants, so we multiply number of pages * 10
+#     return total_restos_page * 24
 
 
 def get_links_from_page(url):
@@ -256,7 +255,8 @@ def crawl_city(url):
 
     html = read_url(url)
     soup = bs4.BeautifulSoup(html, "lxml")
-    total_restos = get_total_restos(soup)
+    # yelp displays 24 pages of reviews for each location
+    total_restos = 24
     resto_pages = []
 
     # Each page has 10 restaurants, so we increment by 10
@@ -272,8 +272,8 @@ def crawl_city(url):
     return city_restos
 
 
-def crawl_and_scrape(counter, city_url="https://www.yelp.com/search?find_desc=&find_loc=Chicago%2C%20IL",
-                     csv_filename="reviews.csv"):
+def crawl_and_scrape(counter=10, city_url="https://www.yelp.com/search?find_desc=&find_loc=Chicago%2C%20IL",
+                     csv_repo="scraped_data_2/"):
     '''
     Crawls the city of Chicago, unless another city url is given,
     and write all reviews from restaurants in that city to a csv file.
@@ -284,7 +284,7 @@ def crawl_and_scrape(counter, city_url="https://www.yelp.com/search?find_desc=&f
             and skipping (high number corresponds to longer run-time, 
             but less pages being skipped)
         - city_url (str): the yelp url of the city
-        - csv_filename (str): the name of the final csv file
+        - csv_repo (str): the name of the repository to store all scraped data
 
     Returns:
         None, writes the csv file in place
@@ -292,10 +292,11 @@ def crawl_and_scrape(counter, city_url="https://www.yelp.com/search?find_desc=&f
 
     city_restos = crawl_city(city_url)
 
-    with open(csv_filename, "w") as f:
-        csvwriter = csv.writer(f)
-        csvwriter.writerow(["Rating", "Text"])
-        for resto in city_restos:
+    for i, resto in enumerate(city_restos):
+        filename = csv_repo + str(i)
+        with open(filename, "w") as f:
+            csvwriter = csv.writer(f)
+            csvwriter.writerow(["Rating", "Text"])
             crawl_resto(resto, csvwriter, counter)
             # Random sleep to avoid being banned by Yelp
             time.sleep(random.randint(1, 3))

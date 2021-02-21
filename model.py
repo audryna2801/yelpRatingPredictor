@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.svm import LinearSVC, SVC
 from sklearn import linear_model, tree, neighbors
-from sklearn.cross_validation import train_test_split, cross_val_score
+from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.feature_selection import SelectFromModel
 from sklearn.metrics import confusion_matrix, classification_report
 from sklearn import preprocessing
@@ -52,13 +52,17 @@ def select_features():
     pass
 
 
-def main(csv_file, testing_fraction):
+def main(csv_file, testing_fraction=0.2):
     # Potential for nested for loops here to manipulate n and remove stop and number of stop words
     df = get_final_df(csv_file)
-    x_train, x_test, y_train, y_test = train_test_split(df.iloc[:, 1],
-                                                        df.Rating,
-                                                        test_size=testing_fraction,
-                                                        random_state=33)
+    x_train, x_validate_test, y_train, y_validate_test = train_test_split(df.iloc[:, 1],
+                                                                          df.Rating,
+                                                                          test_size=testing_fraction,
+                                                                          random_state=33)
+    x_validate, x_test, y_validate, y_test = train_test_split(x_validate_test,
+                                                              y_validate_test,
+                                                              test_size=0.5,
+                                                              random_state=33)
     # Potential for loops to manipulate model parameters
 
     model = linear_model.SGDClassifier(loss='hinge', alpha=0.0001, penalty='l2',
@@ -67,6 +71,6 @@ def main(csv_file, testing_fraction):
     prediction = predictModel(trained_model, x_test)
     result = evaluateModel(trained_model, prediction, x_test, y_test)
 
-    # SAVE MODEL, IDK HOW TO DO THIS HEHE
+    print(result)
 
-    pass
+    # SAVE MODEL, IDK HOW TO DO THIS HEHE

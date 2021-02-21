@@ -224,12 +224,13 @@ def get_final_df(csv_file, n=3, remove_stop=True, num_stop_words=20):
         final dataframe for modelling
     '''
 
-    df = pd.read_csv(csv_file)
+    df = pd.read_csv(csv_file, usecols=[0, 1], names=[
+                     'Rating', 'Text'], header=None)
     all_tokens = [processing(text) for text in df.Text]
 
     if remove_stop:
         stop_words = get_stop_words(all_tokens, num_stop_words)
-        print(stop_words)
+        # print(stop_words)
         all_tokens = [[token for token in tokens if token not in stop_words]
                       for tokens in all_tokens]
 

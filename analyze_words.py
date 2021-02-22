@@ -239,7 +239,7 @@ def get_final_df(csv_file, n=3, remove_stop=True, num_stop_words=20):
     final_df = tfidf_vectorize(ngrams)
     y_values = df.Rating.astype('category')
 
-    final_df.insert(0, "Rating", y_values)
+    final_df["Rating"] = y_values
 
     return final_df
 

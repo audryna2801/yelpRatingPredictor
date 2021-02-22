@@ -55,7 +55,7 @@ def select_features():
 def main(df, testing_fraction=0.2):
     # Potential for nested for loops here to manipulate n and remove stop and number of stop words
     #df = get_final_df(csv_file)
-    x_train, x_validate_test, y_train, y_validate_test = train_test_split(df.iloc[:, 1:],
+    x_train, x_validate_test, y_train, y_validate_test = train_test_split(df.drop("Rating", axis=1),
                                                                           df.Rating,
                                                                           test_size=testing_fraction,
                                                                           random_state=33)

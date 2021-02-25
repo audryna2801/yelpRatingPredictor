@@ -1,4 +1,6 @@
 from analyze_words import *
+import sys
+
 
 # Code to get user input
 # ....
@@ -7,9 +9,33 @@ from analyze_words import *
 
 
 def user_stuff_here():
+    print("===================================================")
+    print("   Welcome to the Suggested Star Rating System!")
+    print()
+    print("            Copy and paste your review.")
+    print()
+    print("      Press Control-D to exit or type quit()")
+    print("===================================================")
+    print()
 
-    pass
+    review = input("Enter review here: ")
+    review = str(review)
+    
+    
+    if type(review) == str:
+        if len(review) >= 50:
+            pass
+            vectorized_review = main(review, remove_stop=True, stop_words, idf, columns)
+            #run function, s.t star_rating = some int/5
+        else:
+            print("Please input a longer review.")
 
+    else: 
+        print("Please enter a valid input.")
+    
+    print("Your suggest star rating is:", star_rating)
+    print("Thank you for using our Suggested Star Rating System!")
+    print(quit)
 
 def main(user_input, remove_stop=True, stop_words, idf, columns):
     processed_input = processing(user_input)

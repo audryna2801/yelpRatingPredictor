@@ -277,7 +277,6 @@ def crawl_and_scrape(counter=10, city_url="https://www.yelp.com/search?find_desc
         filename = csv_repo + str(i) + ".csv"
         with open(filename, "w") as f:
             csvwriter = csv.writer(f)
-            csvwriter.writerow(["Rating", "Text"])
             crawl_resto(resto, csvwriter, counter)
             # Random sleep to avoid being banned by Yelp
             time.sleep(random.randint(1, 3))

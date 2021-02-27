@@ -201,25 +201,6 @@ def crawl_resto(url, writer, counter):
         # Random sleep to avoid being banned by Yelp
         time.sleep(random.randint(1, 3))
 
-# fIX OR nah?
-# def get_total_restos(soup):
-#     '''
-#     Given a soup object representing a page, it will get the total number of
-#     restaurants to help the program determine how many pages of restaurants to
-#     scrape.
-
-#     Returns:
-#         (int) number of restaurants in the city
-#     '''
-
-#     total_restos_tag = soup.find(
-#         "span", class_="text__09f24__1RhSS text-color--black-extra-light__09f24__2ZRGr text-align--left__09f24__ceIWW")
-#     total_restos_str = total_restos_tag.text
-#     total_restos_page = int(re.search(r'of (\d+)', total_restos_str)[1])
-
-#     # Each page has 10 restaurants, so we multiply number of pages * 10
-#     return total_restos_page * 24
-
 
 def get_links_from_page(url):
     '''
@@ -293,7 +274,7 @@ def crawl_and_scrape(counter=10, city_url="https://www.yelp.com/search?find_desc
     city_restos = crawl_city(city_url)
 
     for i, resto in enumerate(city_restos):
-        filename = csv_repo + str(i)
+        filename = csv_repo + str(i) + ".csv"
         with open(filename, "w") as f:
             csvwriter = csv.writer(f)
             csvwriter.writerow(["Rating", "Text"])

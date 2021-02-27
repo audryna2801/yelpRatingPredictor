@@ -254,10 +254,11 @@ def crawl_city(url):
 
 
 def crawl_and_scrape(counter=10, city_url="https://www.yelp.com/search?find_desc=&find_loc=Chicago%2C%20IL",
-                     csv_repo="scraped_data_2/"):
+                     csv_repo="scraped_data/"):
     '''
     Crawls the city of Chicago, unless another city url is given,
-    and write all reviews from restaurants in that city to a csv file.
+    and write all reviews from restaurants in that city to a csv file. csv file 
+    does not contain headers.
 
     Inputs:
         - counter (int): if the program gets blocked by Yelp,

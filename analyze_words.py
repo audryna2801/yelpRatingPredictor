@@ -27,7 +27,7 @@ PUNCTUATION = " ".join([chr(i) for i in range(sys.maxunicode)
                         if keep_chr(chr(i))])
 
 
-def processing(text):
+def processing(text, stem=True):
     '''
     Converts a text of a review  into a list of strings
 
@@ -55,7 +55,9 @@ def processing(text):
         word = word.replace('&quot', '"')
 
         word = word.lower()
-        lemmatizer.lemmatize(word)
+        
+        if stem:
+            lemmatizer.lemmatize(word)
 
         # Splits words if / present
         if '/' in word:
@@ -205,7 +207,7 @@ def tfidf_vectorize(revs):
             tf = 0.5 + 0.5 * (rev[tok] / max_freq)
             rev[tok] = tf * idf[tok]
 
-    return pd.DataFrame(tok_to_freq_by_rev).fillna(0)
+    return pd.DataFrame(tok_to_freq_by_rev).fillna(0), idf
 
 
 def get_final_df(csv_file, n=3, remove_stop=True, num_stop_words=20):
@@ -236,12 +238,12 @@ def get_final_df(csv_file, n=3, remove_stop=True, num_stop_words=20):
 
     ngrams = [make_ngrams(tokens, n) for tokens in all_tokens]
 
-    final_df = tfidf_vectorize(ngrams)
+    final_df, idf = tfidf_vectorize(ngrams)
     y_values = df.Rating.astype('category')
 
     final_df["Rating"] = y_values
 
-    return final_df
+    return final_df, idf
 
 
 # TESTING

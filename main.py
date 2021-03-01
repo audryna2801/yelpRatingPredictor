@@ -37,10 +37,10 @@ def user_stuff_here():
     print("Thank you for using our Suggested Star Rating System!")
     print(quit)
 
-def main(user_input, remove_stop=True, stop_words, idf, columns):
+def main(user_input, stop_words=10, idf, columns, n_grams):
     processed_input = processing(user_input)
 
-    if remove_stop:
+    if stop_words == 0:
         processed_input = remove_stop(stop_words, processed_input)
 
     ngrams = make_ngrams(processed_input, n)

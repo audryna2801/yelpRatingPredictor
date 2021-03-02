@@ -16,7 +16,6 @@ import json
 
 
 def applyModels(model, x_train, y_train):
-    print(model)
     model.fit(x_train, y_train)
     return model
 

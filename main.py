@@ -3,8 +3,7 @@ from model import *
 import sys
 import json
 import joblib
-import nltk
-nltk.download('wordnet')
+
 
 def shell():
     message = ""
@@ -22,6 +21,7 @@ def shell():
             prompt(message, word)
             continue
 
+
 def user_interface():
     print("===================================================")
     print("   Welcome to the Suggested Star Rating System!")
@@ -33,10 +33,9 @@ def user_interface():
     print()
 
     while True:
-
         review = input("Enter review here: ")
         review = str(review)
-        
+
         if review == "exit" or review == "quit":
             print("Thank you for Using our Suggested Star Rating System!")
             sys.exit()

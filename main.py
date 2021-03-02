@@ -6,52 +6,34 @@ import joblib
 import nltk
 nltk.download('wordnet')
 
-def shell():
-    message = ""
-    word = ""
-    while True:
-        # Get a character
-        c = getch()
-
-        # Control-D resets the message
-        if ord(c) == 4:
-            message = ""
-            word = ""
-            misspelled = False
-            print()
-            prompt(message, word)
-            continue
-
 def user_interface():
     print("===================================================")
     print("   Welcome to the Suggested Star Rating System!")
     print()
     print("            Copy and paste your review.")
     print()
-    print("   Type exit or quit to terminate the program.")
+    print("       Type Control-D to exit the program.")
     print("===================================================")
     print()
+    try:
+        while True:
+            review = input("Enter review here: ")
+            review = str(review)
+            if len(review) >= 50:
+                break
+            else:
+                print("Please input a longer review.")
 
-    while True:
+        x_array = process_input(review)
+        final_model = joblib.load("final_model.pkl")
+        prediction = predictModel(final_model, [x_array])
+        star_rating = int(prediction)
 
-        review = input("Enter review here: ")
-        review = str(review)
-        
-        if review == "exit" or review == "quit":
-            print("Thank you for Using our Suggested Star Rating System!")
-            sys.exit()
-        if len(review) >= 50:
-            break
-        else:
-            print("Please input a longer review.")
+        print("Your suggested star rating is: {}".format(str(star_rating)))
+        print("Thank you for using our Suggested Star Rating System!")
+    except EOFError:
+        sys.exit()
 
-    x_array = process_input(review)
-    final_model = joblib.load("final_model.pkl")
-    prediction = predictModel(final_model, [x_array])
-    star_rating = int(prediction)
-
-    print("Your suggested star rating is: {}".format(str(star_rating)))
-    print("Thank you for using our Suggested Star Rating System!")
 
 
 def process_input(user_input):

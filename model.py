@@ -1,5 +1,8 @@
 import pandas as pd
 import numpy as np
+import time
+import joblib
+import json
 from sklearn.svm import LinearSVC, SVC
 from sklearn import linear_model, tree, neighbors
 from sklearn.model_selection import train_test_split, cross_val_score
@@ -8,11 +11,7 @@ from sklearn.metrics import confusion_matrix, classification_report
 from sklearn.metrics import f1_score, accuracy_score
 from sklearn import preprocessing
 from nltk import pos_tag
-import time
-from analyze_words import get_final_df
-import joblib
-from sklearn.feature_selection import SelectFromModel
-import json
+from analyze_words import *
 
 
 def applyModels(model, x_train, y_train):
@@ -41,12 +40,6 @@ def applyFeatureSelection(model, x_train, y_train):
 
 def generate_additional_features():
     # in case we want to include number of taggings (like verb, noun) to our columns
-    pass
-
-
-def select_features():
-    # implement feature selection algorithm,
-    # this is similar to the forward selection/greedy algorithm we did in PA5 Fall Quarter
     pass
 
 

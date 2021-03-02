@@ -3,8 +3,7 @@ from model import *
 import sys
 import json
 import joblib
-import nltk
-nltk.download('wordnet')
+
 
 def user_interface():
     print("===================================================")
@@ -33,7 +32,6 @@ def user_interface():
         print("Thank you for using our Suggested Star Rating System!")
     except EOFError:
         sys.exit()
-
 
 
 def process_input(user_input):

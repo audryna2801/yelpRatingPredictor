@@ -28,8 +28,8 @@ def merge_data(scraped_data_dir='scraped_data/', num_samples=10000,
 
     # select (num_samples / 5 samples) from each rating group
     num_samples_per_rating = round(num_samples/5)
-    concat_data = concatenated_df.groupby("Rating").sample(
-        n=num_samples_per_rating, random_state=1234).reset_index(drop=True)
+    concat_data = concatenated_df.groupby("Rating").sample(n=num_samples_per_rating,
+                                                           random_state=random_state).reset_index(drop=True)
 
     # write concat_data to csv
     concat_data.to_csv('merged_data.csv', header=False, index=False)

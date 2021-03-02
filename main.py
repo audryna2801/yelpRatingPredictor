@@ -6,6 +6,21 @@ import joblib
 import nltk
 nltk.download('wordnet')
 
+def shell():
+    message = ""
+    word = ""
+    while True:
+        # Get a character
+        c = getch()
+
+        # Control-D resets the message
+        if ord(c) == 4:
+            message = ""
+            word = ""
+            misspelled = False
+            print()
+            prompt(message, word)
+            continue
 
 def user_interface():
     print("===================================================")
@@ -13,13 +28,18 @@ def user_interface():
     print()
     print("            Copy and paste your review.")
     print()
-    print("      Press Control-D to exit or type quit()")
+    print("   Type exit or quit to terminate the program.")
     print("===================================================")
     print()
 
     while True:
+
         review = input("Enter review here: ")
         review = str(review)
+        
+        if review == "exit" or review == "quit":
+            print("Thank you for Using our Suggested Star Rating System!")
+            sys.exit()
         if len(review) >= 50:
             break
         else:

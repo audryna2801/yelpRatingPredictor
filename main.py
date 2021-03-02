@@ -1,8 +1,13 @@
 from analyze_words import *
+from model import *
 import sys
+import json
+import joblib
+import nltk
+nltk.download('wordnet')
 
 
-def user_stuff_here():
+def user_interface():
     print("===================================================")
     print("   Welcome to the Suggested Star Rating System!")
     print()
@@ -12,44 +17,56 @@ def user_stuff_here():
     print("===================================================")
     print()
 
-    review = input("Enter review here: ")
-    review = str(review)
-
-    if type(review) == str:
+    while True:
+        review = input("Enter review here: ")
+        review = str(review)
         if len(review) >= 50:
-            pass
-            vectorized_review = main(review, remove_stop=True, stop_words, idf, columns)
-            # run function, s.t star_rating = some int/5
+            break
         else:
             print("Please input a longer review.")
 
-    else:
-        print("Please enter a valid input.")
+    x_array = process_input(review)
+    final_model = joblib.load("final_model.pkl")
+    prediction = predictModel(final_model, [x_array])
+    star_rating = int(prediction)
 
-    print("Your suggest star rating is:", star_rating)
+    print("Your suggested star rating is: {}".format(str(star_rating)))
     print("Thank you for using our Suggested Star Rating System!")
-    print(quit)
 
 
-def main(user_input, stop_words=10, idf, columns, n_grams):
-    processed_input = processing(user_input)
+def process_input(user_input):
+    with open("columns.json") as f:
+        columns = json.load(f)
+    with open("idf.json") as f:
+        idf = json.load(f)
+    with open("combination.json") as f:
+        comb = json.load(f)
+    with open("stop_words.json") as f:
+        stop_words = json.load(f)
 
-    if stop_words == 0:
-        processed_input = remove_stop(stop_words, processed_input)
+    processed_input = processing(user_input, comb["lemmatize"])
 
-    ngrams = make_ngrams(processed_input, n)
-    ngram_set = set(ngrams)
+    if comb['stop_word'] > 0:
+        processed_input = [
+            token for token in processed_input if token not in stop_words]
 
-    # Issue with vectorizing, need to follow order of the vector before
-    for token in list(ngrams):
-        if token not in idf:
-            ngrams.remove(token)
+    ngrams = make_ngrams(processed_input, comb["ngram"])
+    tf = augmented_freq(ngrams)
 
-    x_array = []
-    for column in columns:
-        if column in ngram_set:
-            # calculate tfidf
-        else:
-            x_array.append(0)
+    ngrams_set = set(ngrams)
+    columns_set = set(columns)
+    indices = pd.Index(columns)
 
-    # more code to vectorize the given input
+    x_array = np.zeros(len(columns))
+
+    for token in ngrams_set:
+        if token in columns_set:
+            tfidf = tf[token] * idf[token]
+            index = indices.get_loc(token)
+            x_array[index] = tfidf
+
+    return x_array
+
+
+if __name__ == "__main__":
+    user_interface()

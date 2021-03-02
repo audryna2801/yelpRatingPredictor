@@ -12,6 +12,7 @@ import time
 from analyze_words import get_final_df
 import joblib
 from sklearn.feature_selection import SelectFromModel
+import json
 
 
 def applyModels(model, x_train, y_train):
@@ -56,18 +57,20 @@ def tune_inputs(csv_file, testing_fraction=0.2):
     lemmatizes = [True, False]
     stop_words = [0, 10, 20]
     alphas = [0.0001, 0.001, 0.01, 0.1, 1]
+
     max_accuracy = -1
     best_comb = {}
     best_idf = None
     best_df = None
+    best_stop = None
 
     for ngram in ngrams:
         for lemmatize in lemmatizes:
             for stop_word in stop_words:
                 for alpha in alphas:
-                    df, idf = get_final_df(csv_file, n=ngram,
-                                           lemmatized=lemmatize,
-                                           num_stop_words=stop_word)
+                    df, idf, chosen_stops = get_final_df(csv_file, n=ngram,
+                                                         lemmatized=lemmatize,
+                                                         num_stop_words=stop_word)
                     x_train, x_test, y_train, y_test = train_test_split(df.drop("Rating", axis=1),
                                                                         df.Rating,
                                                                         test_size=testing_fraction,
@@ -86,13 +89,14 @@ def tune_inputs(csv_file, testing_fraction=0.2):
                         best_comb["alpha"] = alpha
                         best_idf = idf
                         best_df = df
+                        best_stop = chosen_stops
 
-    return best_df, best_comb, best_idf
+    return best_df, best_comb, best_idf, best_stop
 
 
-def main(csv_file, testing_fraction=0.2):
+def main_modelling(csv_file, testing_fraction=0.2):
     # Input and Model Tuning
-    df, comb, idf = tune_inputs(csv_file, testing_fraction)
+    df, comb, idf, stop = tune_inputs(csv_file, testing_fraction)
 
     x_train, x_test, y_train, y_test = train_test_split(df.drop("Rating", axis=1),
                                                         df.Rating,
@@ -111,15 +115,24 @@ def main(csv_file, testing_fraction=0.2):
                                        x_test)
 
     final_model = applyModels(model, x_train, y_train)
-    prediction = predictModel(trained_model, x_test)
+    prediction = predictModel(final_model, x_test)
 
     print("Final Model Classification Report")
     print(classification_report(prediction, y_test))
     print("Accuracy Score")
     print(evaluateModel(prediction, y_test))
 
-    # Saves best Model, Combination, Idf, and Column Names
-    joblib.dump(final_model, "perfect_model.pkl")
-    columns = list(x_test.columns)
+    # Save best Model
+    joblib.dump(final_model, "final_model.pkl")
 
-    # how to save columns,
+    # Save best columns, idf, combination, and stop words
+    feature_idx = trained_feature_selection_model.get_support()
+    column_names = df.drop("Rating", axis=1).columns[feature_idx]
+    with open('columns.json', 'w') as f:
+        json.dump(list(column_names), f)
+    with open('idf.json', 'w') as f:
+        json.dump(idf, f)
+    with open('combination.json', 'w') as f:
+        json.dump(comb, f)
+    with open('stop_words.json', 'w') as f:
+        json.dump(stop, f)

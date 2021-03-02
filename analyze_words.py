@@ -143,6 +143,26 @@ def count_tokens(tokens):
     return rv
 
 
+def augmented_freq(doc):
+    '''
+    Compute the augmented term frequency values of the tokens in a document
+
+    Inputs: 
+        doc: a list of tokens
+
+    Returns: dictionary that maps terms to their augmented frequency
+    '''
+
+    token_dict = count_tokens(doc)
+    tf_dict = {}
+    max_count = max(token_dict.values())
+
+    for token, count in token_dict.items():
+        tf_dict[token] = 0.5 + 0.5 * (count / max_count)
+
+    return tf_dict
+
+
 def compute_idf(docs):
     '''
     Calculate the inverse document frequency (idf) for each term (t) in a
@@ -242,4 +262,7 @@ def get_final_df(csv_file, n=2, lemmatized=True, num_stop_words=20):
 
     final_df["Rating"] = y_values
 
-    return final_df, idf
+    if num_stop_words > 0:
+        return final_df, idf, stop_words
+    else:
+        return final_df, idf, None

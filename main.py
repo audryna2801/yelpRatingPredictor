@@ -2,12 +2,6 @@ from analyze_words import *
 import sys
 
 
-# Code to get user input
-# ....
-
-# Process user input
-
-
 def user_stuff_here():
     print("===================================================")
     print("   Welcome to the Suggested Star Rating System!")
@@ -20,22 +14,22 @@ def user_stuff_here():
 
     review = input("Enter review here: ")
     review = str(review)
-    
-    
+
     if type(review) == str:
         if len(review) >= 50:
             pass
             vectorized_review = main(review, remove_stop=True, stop_words, idf, columns)
-            #run function, s.t star_rating = some int/5
+            # run function, s.t star_rating = some int/5
         else:
             print("Please input a longer review.")
 
-    else: 
+    else:
         print("Please enter a valid input.")
-    
+
     print("Your suggest star rating is:", star_rating)
     print("Thank you for using our Suggested Star Rating System!")
     print(quit)
+
 
 def main(user_input, stop_words=10, idf, columns, n_grams):
     processed_input = processing(user_input)

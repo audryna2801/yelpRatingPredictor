@@ -27,7 +27,7 @@ PUNCTUATION = " ".join([chr(i) for i in range(sys.maxunicode)
                         if keep_chr(chr(i))])
 
 
-def processing(text, stem=True):
+def processing(text, lemmatized):
     '''
     Converts a text of a review  into a list of strings
 
@@ -55,8 +55,8 @@ def processing(text, stem=True):
         word = word.replace('&quot', '"')
 
         word = word.lower()
-        
-        if stem:
+
+        if lemmatized:
             lemmatizer.lemmatize(word)
 
         # Splits words if / present
@@ -210,7 +210,7 @@ def tfidf_vectorize(revs):
     return pd.DataFrame(tok_to_freq_by_rev).fillna(0), idf
 
 
-def get_final_df(csv_file, n=3, remove_stop=True, num_stop_words=20):
+def get_final_df(csv_file, n=2, lemmatized=True, num_stop_words=20):
     '''
     Given a dataframe with two columns, Rating and Text, 
     returns a dataframe that vectorizes the text and joins it
@@ -228,11 +228,10 @@ def get_final_df(csv_file, n=3, remove_stop=True, num_stop_words=20):
 
     df = pd.read_csv(csv_file, usecols=[0, 1], names=[
                      'Rating', 'Text'], header=None)
-    all_tokens = [processing(text) for text in df.Text]
+    all_tokens = [processing(text, lemmatized) for text in df.Text]
 
-    if remove_stop:
+    if num_stop_words > 0:
         stop_words = get_stop_words(all_tokens, num_stop_words)
-        # print(stop_words)
         all_tokens = [[token for token in tokens if token not in stop_words]
                       for tokens in all_tokens]
 
@@ -244,7 +243,3 @@ def get_final_df(csv_file, n=3, remove_stop=True, num_stop_words=20):
     final_df["Rating"] = y_values
 
     return final_df, idf
-
-
-# TESTING
-get_final_df("./test_data/babareba.csv", 2, False)

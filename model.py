@@ -101,14 +101,14 @@ def optimize_model(csv_file, testing_fraction=0.95):
         weighted_accuracy = get_weighted_accuracy(x_train, x_test,
                                                   y_train, y_test, alpha)
 
+        print(combi, "finished testing | accuracy: ", weighted_accuracy)
+
         if weighted_accuracy > max_accuracy:
             max_accuracy = weighted_accuracy
             best_combi = combi
             best_idf = idf
             best_df = df
             best_stop = chosen_stops
-
-        print(combi, "finished testing")
 
     best_combi_dict = {"ngram": best_combi[0], "lemmatize": best_combi[1],
                        "stop_word": best_combi[2], "alpha": best_combi[3]}

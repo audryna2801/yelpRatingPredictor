@@ -1,14 +1,14 @@
+import math
+import sys
+import unicodedata
+import pandas as pd
+import re
+import csv
+import itertools
+from textblob import TextBlob
 import nltk
 from nltk.stem import WordNetLemmatizer
-from textblob import TextBlob
 from nltk import FreqDist
-import itertools
-import csv
-import re
-import pandas as pd
-import unicodedata
-import sys
-import math
 nltk.download('wordnet')
 
 
@@ -37,13 +37,7 @@ def processing(text, lemmatized):
     Returns:
         list of words
     '''
-
     lemmatizer = WordNetLemmatizer()
-
-    # Try to fix spelling errors before splitting
-    # textBlb = TextBlob(text)
-    # corrected_text = textBlb.correct()
-
     split_text = text.split()
     new_text = []
 
@@ -90,21 +84,6 @@ def get_stop_words(all_tokens, num_stop_words=20):
 
     return [word[0] for word in stop_words]
 
-# not needed, used directly in get_final_df
-# def remove_stop(stop_words, tokens):
-#     '''
-#     Take the list of words from a single review and remove
-#     stop words.
-
-#     Input:
-#         text (list of str): list of processed words in a review
-
-#     Returns:
-#         list of string representing words in a single review
-#     '''
-
-#     return [token for token in tokens if token not in stop_words]
-
 
 def make_ngrams(tokens, n):
     '''
@@ -116,7 +95,6 @@ def make_ngrams(tokens, n):
 
     Returns: list of 1 to n words strings for a single review
     '''
-
     ngrams = []
 
     for i in range(1, n+1):
@@ -152,7 +130,6 @@ def augmented_freq(doc):
 
     Returns: dictionary that maps terms to their augmented frequency
     '''
-
     token_dict = count_tokens(doc)
     tf_dict = {}
     max_count = max(token_dict.values())

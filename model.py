@@ -25,8 +25,24 @@ def predictModel(model, x_test):
 
 
 def evaluateModel(prediction, y_test):
-    # Write function to weight errors
-    pass
+    '''
+    Calculate the accuracy of model based on the proportion of accurate 
+    predictions using the testing data. Calculation is weighted by the degree of
+    deviance from 'actual rating'.
+    '''
+    # convert into pandas dataframe for easier handling
+    pred_test_df = pd.DataFrame({'predict': prediction,
+                                 'actual': y_test}).astype('int')
+    pred_test_df['difference'] = (pred_test_df.predict -
+                                  pred_test_df.actual).abs()
+
+    num_tests = len(pred_test_df.index)
+    total_deviance = pred_test_df['difference'].sum()
+
+    # maximum deviance is 4 (5 star rating vs 1 star rating)
+    weighted_accuracy = 1 - (total_deviance / (4 * num_tests))
+
+    return weighted_accuracy
 
 
 def transformFeatureSelection(model, x):

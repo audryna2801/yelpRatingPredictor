@@ -12,6 +12,7 @@ from sklearn.metrics import f1_score, accuracy_score
 from sklearn import preprocessing
 from nltk import pos_tag
 from analyze_words import *
+import itertools
 
 
 def applyModels(model, x_train, y_train):
@@ -45,6 +46,18 @@ def evaluateModel(prediction, y_test):
     return weighted_accuracy
 
 
+def get_weighted_accuracy(x_train, x_test, y_train, y_test, alpha):
+    '''
+    Calculate weighted accuracy of model.
+    '''
+    model = linear_model.SGDClassifier(alpha=alpha)
+    trained_model = applyModels(model, x_train, y_train)
+    prediction = predictModel(trained_model, x_test)
+    weighted_accuracy = evaluateModel(prediction, y_test)
+
+    return weighted_accuracy
+
+
 def transformFeatureSelection(model, x):
     return model.transform(x)
 
@@ -59,52 +72,53 @@ def generate_additional_features():
     pass
 
 
-def tune_inputs(csv_file, testing_fraction=0.2):
+def optimize_model(csv_file, testing_fraction=0.95):
     # Combinations
     ngrams = [1, 2, 3, 4, 5]
     lemmatizes = [True, False]
     stop_words = [0, 10, 20]
     alphas = [0.0001, 0.001, 0.01, 0.1, 1]
 
+    all_combi = list(itertools.product(ngrams, lemmatizes, stop_words, alphas))
+
     max_accuracy = -1
-    best_comb = {}
+    best_combi = None
     best_idf = None
     best_df = None
     best_stop = None
 
-    for ngram in ngrams:
-        for lemmatize in lemmatizes:
-            for stop_word in stop_words:
-                for alpha in alphas:
-                    df, idf, chosen_stops = get_final_df(csv_file, n=ngram,
-                                                         lemmatized=lemmatize,
-                                                         num_stop_words=stop_word)
-                    x_train, x_test, y_train, y_test = train_test_split(df.drop("Rating", axis=1),
-                                                                        df.Rating,
-                                                                        test_size=testing_fraction,
-                                                                        random_state=33)
+    print("completed initializing")
 
-                    model = linear_model.SGDClassifier(alpha=alpha)
-                    trained_model = applyModels(model, x_train, y_train)
-                    prediction = predictModel(trained_model, x_test)
-                    accuracy = evaluateModel(prediction, y_test)
+    for combi in all_combi:
+        ngram, lemmatize, stop_word, alpha = combi
+        df, idf, chosen_stops = get_final_df(csv_file, n=ngram,
+                                             lemmatized=lemmatize,
+                                             num_stop_words=stop_word)
+        x_train, x_test, y_train, y_test = train_test_split(df.drop("Rating", axis=1),
+                                                            df.Rating,
+                                                            test_size=testing_fraction,
+                                                            random_state=33)
+        weighted_accuracy = get_weighted_accuracy(x_train, x_test,
+                                                  y_train, y_test, alpha)
 
-                    if accuracy > max_accuracy:
-                        max_accuracy = accuracy
-                        best_comb["ngram"] = ngram
-                        best_comb["lemmatize"] = lemmatize
-                        best_comb["stop_word"] = stop_word
-                        best_comb["alpha"] = alpha
-                        best_idf = idf
-                        best_df = df
-                        best_stop = chosen_stops
+        if weighted_accuracy > max_accuracy:
+            max_accuracy = weighted_accuracy
+            best_combi = combi
+            best_idf = idf
+            best_df = df
+            best_stop = chosen_stops
 
-    return best_df, best_comb, best_idf, best_stop
+        print(combi, "finished testing")
+
+    best_combi_dict = {"ngram": best_combi[0], "lemmatize": best_combi[1],
+                       "stop_word": best_combi[2], "alpha": best_combi[3]}
+
+    return best_df, best_combi_dict, best_idf, best_stop
 
 
-def main_modelling(csv_file, testing_fraction=0.2):
+def main_modelling(csv_file, testing_fraction=0.95):
     # Input and Model Tuning
-    df, comb, idf, stop = tune_inputs(csv_file, testing_fraction)
+    df, comb, idf, stop = optimize_model(csv_file, testing_fraction)
 
     x_train, x_test, y_train, y_test = train_test_split(df.drop("Rating", axis=1),
                                                         df.Rating,
@@ -131,16 +145,16 @@ def main_modelling(csv_file, testing_fraction=0.2):
     print(evaluateModel(prediction, y_test))
 
     # Save best Model
-    joblib.dump(final_model, "final_model.pkl")
+    joblib.dump(final_model, "optimal_args/final_model.pkl")
 
     # Save best columns, idf, combination, and stop words
     feature_idx = trained_feature_selection_model.get_support()
     column_names = df.drop("Rating", axis=1).columns[feature_idx]
-    with open('columns.json', 'w') as f:
+    with open('optimal_args/columns.json', 'w') as f:
         json.dump(list(column_names), f)
-    with open('idf.json', 'w') as f:
+    with open('optimal_args/idf.json', 'w') as f:
         json.dump(idf, f)
-    with open('combination.json', 'w') as f:
+    with open('optimal_args/combination.json', 'w') as f:
         json.dump(comb, f)
-    with open('stop_words.json', 'w') as f:
+    with open('optimal_args/stop_words.json', 'w') as f:
         json.dump(stop, f)

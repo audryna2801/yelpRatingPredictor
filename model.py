@@ -16,31 +16,56 @@ import itertools
 
 
 def applyModels(model, x_train, y_train):
+    '''
+    Fit a model to a pair of x and y training data.
+    
+    Inputs:
+      - model (Model): model being fitted
+      - x_train (arr): x training data
+      - y_train (arr): y training data
+    
+    Returns: Model
+    '''
     model.fit(x_train, y_train)
     return model
 
 
 def predictModel(model, x_test):
+    '''
+    Use a model to generate a prediction for y from x testing data.
+    
+    Inputs:
+      - model (Model): model being applied
+      - x_test (arr): x testing data
+    
+    Returns: arr
+    '''
     prediction = model.predict(x_test)
     return prediction
 
 
 def evaluateModel(prediction, y_test):
     '''
-    Calculate the accuracy of model based on the proportion of accurate 
-    predictions using the testing data. Calculation is weighted by the degree of
-    deviance from 'actual rating'.
+    Calculate the accuracy of a model based on the proportion of
+    accurate predictions using the testing data. Accuracy is
+    weighted by the deviance from the actual rating.
+    
+    Inputs:
+      - prediction (arr): predicted y values
+      - y_test (arr): actual y values
+    
+    Returns: float
     '''
-    # convert into pandas dataframe for easier handling
+    # Convert into DataFrame for easier handling
     pred_test_df = pd.DataFrame({'predict': prediction,
                                  'actual': y_test}).astype('int')
-    pred_test_df['difference'] = (pred_test_df.predict -
-                                  pred_test_df.actual).abs()
+    pred_test_df['difference'] = (pred_test_df.predict
+                                  - pred_test_df.actual).abs()
 
     num_tests = len(pred_test_df.index)
     total_deviance = pred_test_df['difference'].sum()
 
-    # maximum deviance is 4 (5 star rating vs 1 star rating)
+    # Maximum deviance is 4 (5-star rating vs. 1-star rating)
     weighted_accuracy = 1 - (total_deviance / (4 * num_tests))
 
     return weighted_accuracy
@@ -48,7 +73,16 @@ def evaluateModel(prediction, y_test):
 
 def get_weighted_accuracy(x_train, x_test, y_train, y_test, alpha):
     '''
-    Calculate weighted accuracy of model.
+    Calculate weighted accuracy of a model.
+    
+    Inputs:
+      - x_train (arr): x training data
+      - x_test (arr): x testing data
+      - y_train (arr): y training data
+      - y_test (arr): y testing data
+      - alpha (float): constant that multiplies regularization term
+      
+    Returns: float
     '''
     model = linear_model.SGDClassifier(alpha=alpha)
     trained_model = applyModels(model, x_train, y_train)
@@ -59,20 +93,35 @@ def get_weighted_accuracy(x_train, x_test, y_train, y_test, alpha):
 
 
 def transformFeatureSelection(model, x):
+    # Need doc string
     return model.transform(x)
 
 
 def applyFeatureSelection(model, x_train, y_train):
+    # Need doc string
     model = model.fit(x_train, y_train)
     return model
 
 
 def generate_additional_features():
-    # in case we want to include number of taggings (like verb, noun) to our columns
+    # In case we want to include number of taggings
+    # (like verb, noun) to our columns
     pass
 
 
 def optimize_model(csv_file, testing_fraction=0.95):
+    '''
+    Find the optimal combination of parameters (maximum n-gram length,
+    whether to lemmatize, number of stop words, and alpha) for the
+    suggested star rating model, as well as the corresponding DataFrame, 
+    idf dictionary, and list of stop words.
+    
+    Inputs:
+      - csv_file (string): CSV file name
+      - testing_fraction (float): proportion of data reserved for testing
+    
+    Returns: DataFrame, dict (parameters), dict (idf), list of str
+    '''
     # Combinations
     ngrams = [1, 2, 3, 4, 5]
     lemmatizes = [True, False]
@@ -87,21 +136,22 @@ def optimize_model(csv_file, testing_fraction=0.95):
     best_df = None
     best_stop = None
 
-    print("completed initializing")
+    print("Completed initializing.")
 
     for combi in all_combi:
         ngram, lemmatize, stop_word, alpha = combi
-        df, idf, chosen_stops = get_final_df(csv_file, n=ngram,
-                                             lemmatized=lemmatize,
-                                             num_stop_words=stop_word)
-        x_train, x_test, y_train, y_test = train_test_split(df.drop("Rating", axis=1),
-                                                            df.Rating,
-                                                            test_size=testing_fraction,
-                                                            random_state=33)
+        df, idf, chosen_stops = get_df_idf_stops(csv_file, n=ngram,
+                                                 lemmatized=lemmatize,
+                                                 num_stop_words=stop_word)
+        (x_train, x_test,
+         y_train, y_test) = train_test_split(df.drop("Rating", axis=1),
+                                             df.Rating,
+                                             test_size=testing_fraction,
+                                             random_state=33)
         weighted_accuracy = get_weighted_accuracy(x_train, x_test,
                                                   y_train, y_test, alpha)
 
-        print(combi, "finished testing | accuracy: ", weighted_accuracy)
+        print(combi, "Finished testing. | Accuracy: ", weighted_accuracy)
 
         if weighted_accuracy > max_accuracy:
             max_accuracy = weighted_accuracy
@@ -117,13 +167,24 @@ def optimize_model(csv_file, testing_fraction=0.95):
 
 
 def main_modelling(csv_file, testing_fraction=0.95):
+    '''
+    Generate the optimal model for predicting Yelp review ratings by
+    cycling through combinations of parameters and save it as a PKL file.
+    
+    Inputs:
+      - csv_file (string): CSV file name
+      - testing_fraction (float): proportion of data reserved for testing
+    
+    Returns: None, writes PKL file
+    '''
     # Input and Model Tuning
     df, comb, idf, stop = optimize_model(csv_file, testing_fraction)
 
-    x_train, x_test, y_train, y_test = train_test_split(df.drop("Rating", axis=1),
-                                                        df.Rating,
-                                                        test_size=testing_fraction,
-                                                        random_state=33)
+    (x_train, x_test,
+     y_train, y_test) = train_test_split(df.drop("Rating", axis=1),
+                                         df.Rating,
+                                         test_size=testing_fraction,
+                                         random_state=33)
 
     # Feature Selection
     model = linear_model.SGDClassifier(alpha=comb["alpha"])

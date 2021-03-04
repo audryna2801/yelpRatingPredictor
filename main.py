@@ -42,10 +42,10 @@ def process_input(user_input):
     where each item corresponding to a valid n-gram in the input
     is replaced by the n-gram's tfidf. This allows a review to be
     evaluated by a model.
-    
+
     Inputs:
       - user_input (str): review input by user
-      
+
     Returns: arr
     '''
     with open("columns.json") as f:
@@ -64,7 +64,8 @@ def process_input(user_input):
                            if token not in stop_words]
 
     ngrams = make_ngrams(processed_input, comb["ngram"])
-    tf = compute_tf(ngrams)
+    token_counts = count_tokens(ngrams)
+    max_count = max(token_counts.values())
 
     ngrams_set = set(ngrams)
     columns_set = set(columns)
@@ -74,31 +75,12 @@ def process_input(user_input):
 
     for token in ngrams_set:
         if token in columns_set:
-            tfidf = tf[token] * idf[token]
+            tf = 0.5 + 0.5 * (token_counts[token] / max_count)
+            tfidf = tf * idf[token]
             index = indices.get_loc(token)
             x_array[index] = tfidf
 
     return x_array
-
-
-def compute_tf(doc):
-    '''
-    Compute the augmented term frequency (tf) of the tokens
-    in a document.
-
-    Inputs: 
-      - doc (list of str): a list of tokens
-
-    Returns: dict mapping terms to tf values
-    '''
-    token_dict = count_tokens(doc)
-    tf_dict = {}
-    max_count = max(token_dict.values())
-
-    for token, count in token_dict.items():
-        tf_dict[token] = 0.5 + 0.5 * (count / max_count)
-
-    return tf_dict
 
 
 if __name__ == "__main__":

@@ -140,7 +140,7 @@ def optimize_model(csv_file, testing_fraction=0.95):
     return best_df, best_combi_dict, best_idf, best_stop_words
 
 
-def main_modelling(csv_file, testing_fraction=0.2):
+def main_modelling(csv_file='test_data/merged_data.csv', testing_fraction=0.2):
     '''
     Generate the optimal model for predicting Yelp review ratings by
     cycling through combinations of parameters and save it as a PKL file.

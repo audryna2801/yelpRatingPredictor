@@ -28,12 +28,7 @@ def user_interface():
 
         x_array = process_input(review)
 
-
-<< << << < HEAD
         final_model = joblib.load("optimal_args/final_model.pkl")
-== == == =
-        final_model = joblib.load("final_model.pkl")
->>>>>> > 102682d0bdf7bf09dd47814ffdd9a15bf4159273
         prediction = predictModel(final_model, [x_array])
         star_rating = int(prediction)
 

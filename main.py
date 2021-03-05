@@ -1,9 +1,10 @@
-from analyze_words import *
-from model import *
-
 import sys
 import json
 import joblib
+import pandas as pd
+import numpy as np
+from analyze_words import processing, make_ngrams, count_tokens
+from sklearn import linear_model
 from textblob import TextBlob
 
 
@@ -29,7 +30,7 @@ def user_interface():
         x_array = process_input(review)
 
         final_model = joblib.load("optimal_args/final_model.pkl")
-        prediction = predictModel(final_model, [x_array])
+        prediction = final_model.predict([x_array])
         star_rating = int(prediction)
 
         print("Your suggested star rating is: {}".format(star_rating))
@@ -51,11 +52,11 @@ def process_input(user_input):
     Returns: arr
     '''
     with open("optimal_args/columns.json") as f:
-        columns = json.load(f)
+        column_names = json.load(f)
     with open("optimal_args/idf.json") as f:
         idf = json.load(f)
     with open("optimal_args/combination.json") as f:
-        comb = json.load(f)
+        combi = json.load(f)
     with open("optimal_args/stop_words.json") as f:
         stop_words = json.load(f)
 
@@ -63,26 +64,24 @@ def process_input(user_input):
     textBlb = TextBlob(user_input)
     corrected_user_input = textBlb.correct()
     print("Your review is: ", corrected_user_input)
-    processed_input = processing(corrected_user_input, comb['lemmatize'])
+    processed_input = processing(corrected_user_input, combi["lemmatize"])
 
-    # correct this to 'num_stop_words'
-    if comb['num_stop_words'] > 0:
+    if combi["num_stop_words"] > 0:
         processed_input = [token for token in processed_input
                            if token not in stop_words]
 
-    ngrams = make_ngrams(processed_input, comb["ngram"])
+    ngrams = make_ngrams(processed_input, combi["ngram"])
     token_counts = count_tokens(ngrams)
     max_count = max(token_counts.values())
 
-    ngrams_set = set(ngrams)
-    columns_set = set(columns)
-    indices = pd.Index(columns)
+    columns_set = set(column_names)
+    indices = pd.Index(column_names)
 
-    x_array = np.zeros(len(columns))
+    x_array = np.zeros(len(column_names))
 
-    for token in ngrams_set:
+    for token, count in token_counts.items():
         if token in columns_set:
-            tf = 0.5 + 0.5 * (token_counts[token] / max_count)
+            tf = 0.5 + 0.5 * (count / max_count)
             tfidf = tf * idf[token]
             index = indices.get_loc(token)
             x_array[index] = tfidf

@@ -9,7 +9,7 @@ from textblob import TextBlob
 import nltk
 from nltk.stem import WordNetLemmatizer
 from nltk import FreqDist
-nltk.download('wordnet')
+nltk.download("wordnet")
 
 
 # Generating global variables
@@ -26,7 +26,7 @@ def keep_chr(ch):
 
     Returns: Boolean
     '''
-    return unicodedata.category(ch).startswith('P')
+    return unicodedata.category(ch).startswith("P")
 
 
 PUNCTUATION = " ".join([chr(i) for i in range(sys.maxunicode)
@@ -35,8 +35,7 @@ PUNCTUATION = " ".join([chr(i) for i in range(sys.maxunicode)
 
 # Pre-processing stage
 def processing(text, lemmatized):  # Word-splitting is still buggy
-    # (..., internal ., trailing and
-    # leading " and ', etc.)
+    # (..., internal)
     '''
     Convert a text of a review into a list of strings.
 
@@ -106,7 +105,7 @@ def make_ngrams(tokens, n):
     ngrams = []
 
     for i in range(1, n+1):
-        ngrams += [' '.join(tuple(tokens[j:j+i]))
+        ngrams += [" ".join(tuple(tokens[j:j+i]))
                    for j in range(len(tokens) - i + 1)]
 
     return ngrams
@@ -182,8 +181,8 @@ def tfidf_vectorize(revs):
     return pd.DataFrame(token_to_freq_by_rev).fillna(0), idf
 
 
-def get_df_idf_stops(csv_file, n=2, lemmatized=True,
-                     num_stop_words=20):
+def get_df_idf_stops(csv_file, n, lemmatized,
+                     num_stop_words):
     '''
     Given a dataframe with two columns, rating and text, generate a
     dataframe that vectorizes the text, and join it back with the
@@ -198,8 +197,7 @@ def get_df_idf_stops(csv_file, n=2, lemmatized=True,
     Returns: DataFrame, dict (idf), and list (stop words)
     '''
 
-    df = pd.read_csv(csv_file, usecols=[0, 1],
-                     names=["Rating", "Text"], header=None)
+    df = pd.read_csv(csv_file)
     all_tokens = [processing(text, lemmatized) for text in df.Text]
 
     if num_stop_words > 0:
@@ -216,5 +214,5 @@ def get_df_idf_stops(csv_file, n=2, lemmatized=True,
 
     if num_stop_words > 0:
         return final_df, idf, stop_words
-    else:
-        return final_df, idf, None  # Should we return an empty list here?
+
+    return final_df, idf, []

@@ -18,12 +18,12 @@ import itertools
 def applyModels(model, x_train, y_train):
     '''
     Fit a model to a pair of x and y training data.
-    
+
     Inputs:
       - model (Model): model being fitted
       - x_train (arr): x training data
       - y_train (arr): y training data
-    
+
     Returns: Model
     '''
     model.fit(x_train, y_train)
@@ -33,11 +33,11 @@ def applyModels(model, x_train, y_train):
 def predictModel(model, x_test):
     '''
     Use a model to generate a prediction for y from x testing data.
-    
+
     Inputs:
       - model (Model): model being applied
       - x_test (arr): x testing data
-    
+
     Returns: arr
     '''
     prediction = model.predict(x_test)
@@ -49,11 +49,11 @@ def evaluateModel(prediction, y_test):
     Calculate the accuracy of a model based on the proportion of
     accurate predictions using the testing data. Accuracy is
     weighted by the deviance from the actual rating.
-    
+
     Inputs:
       - prediction (arr): predicted y values
       - y_test (arr): actual y values
-    
+
     Returns: float
     '''
     # Convert into DataFrame for easier handling
@@ -74,14 +74,14 @@ def evaluateModel(prediction, y_test):
 def get_weighted_accuracy(x_train, x_test, y_train, y_test, alpha):
     '''
     Calculate weighted accuracy of a model.
-    
+
     Inputs:
       - x_train (arr): x training data
       - x_test (arr): x testing data
       - y_train (arr): y training data
       - y_test (arr): y testing data
       - alpha (float): constant that multiplies regularization term
-      
+
     Returns: float
     '''
     model = linear_model.SGDClassifier(alpha=alpha)
@@ -115,20 +115,21 @@ def optimize_model(csv_file, testing_fraction=0.95):
     whether to lemmatize, number of stop words, and alpha) for the
     suggested star rating model, as well as the corresponding DataFrame, 
     idf dictionary, and list of stop words.
-    
+
     Inputs:
       - csv_file (string): CSV file name
       - testing_fraction (float): proportion of data reserved for testing
-    
+
     Returns: DataFrame, dict (parameters), dict (idf), list of str
     '''
     # Combinations
-    ngrams = [1, 2, 3, 4, 5]
+    ngrams = [1, 2, 3]
     lemmatizes = [True, False]
-    stop_words = [0, 10, 20]
+    num_stop_words = [0, 10, 20]
     alphas = [0.0001, 0.001, 0.01, 0.1, 1]
 
-    all_combi = list(itertools.product(ngrams, lemmatizes, stop_words, alphas))
+    all_combi = list(itertools.product(
+        ngrams, lemmatizes, num_stop_words, alphas))
 
     max_accuracy = -1
     best_combi = None
@@ -139,10 +140,10 @@ def optimize_model(csv_file, testing_fraction=0.95):
     print("Completed initializing.")
 
     for combi in all_combi:
-        ngram, lemmatize, stop_word, alpha = combi
+        ngram, lemmatize, num_stop_words, alpha = combi
         df, idf, chosen_stops = get_df_idf_stops(csv_file, n=ngram,
                                                  lemmatized=lemmatize,
-                                                 num_stop_words=stop_word)
+                                                 num_stop_words=num_stop_words)
         (x_train, x_test,
          y_train, y_test) = train_test_split(df.drop("Rating", axis=1),
                                              df.Rating,
@@ -161,7 +162,7 @@ def optimize_model(csv_file, testing_fraction=0.95):
             best_stop = chosen_stops
 
     best_combi_dict = {"ngram": best_combi[0], "lemmatize": best_combi[1],
-                       "stop_word": best_combi[2], "alpha": best_combi[3]}
+                       "num_stop_words": best_combi[2], "alpha": best_combi[3]}
 
     return best_df, best_combi_dict, best_idf, best_stop
 
@@ -170,11 +171,11 @@ def main_modelling(csv_file, testing_fraction=0.95):
     '''
     Generate the optimal model for predicting Yelp review ratings by
     cycling through combinations of parameters and save it as a PKL file.
-    
+
     Inputs:
       - csv_file (string): CSV file name
       - testing_fraction (float): proportion of data reserved for testing
-    
+
     Returns: None, writes PKL file
     '''
     # Input and Model Tuning
@@ -217,5 +218,5 @@ def main_modelling(csv_file, testing_fraction=0.95):
         json.dump(idf, f)
     with open('optimal_args/combination.json', 'w') as f:
         json.dump(comb, f)
-    with open('optimal_args/stop_words.json', 'w') as f:
+    with open('optimal_args/num_stop_words.json', 'w') as f:
         json.dump(stop, f)

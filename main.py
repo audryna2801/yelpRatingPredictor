@@ -26,7 +26,7 @@ def user_interface():
                 print("Please input a longer review.")
 
         x_array = process_input(review)
-        final_model = joblib.load("perfect_model.pkl")
+        final_model = joblib.load("final_model.pkl")
         prediction = predictModel(final_model, [x_array])
         star_rating = int(prediction)
 
@@ -59,7 +59,7 @@ def process_input(user_input):
 
     processed_input = processing(user_input, comb["lemmatize"])
 
-    if comb['stop_word'] > 0:
+    if comb['num_stop_words'] > 0:
         processed_input = [token for token in processed_input
                            if token not in stop_words]
 

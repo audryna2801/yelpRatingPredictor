@@ -27,7 +27,13 @@ def user_interface():
                 print("Please input a longer review.")
 
         x_array = process_input(review)
+
+
+<< << << < HEAD
         final_model = joblib.load("optimal_args/final_model.pkl")
+== == == =
+        final_model = joblib.load("final_model.pkl")
+>>>>>> > 102682d0bdf7bf09dd47814ffdd9a15bf4159273
         prediction = predictModel(final_model, [x_array])
         star_rating = int(prediction)
 
@@ -63,8 +69,7 @@ def process_input(user_input):
     corrected_user_input = textBlb.correct()
     print("Your review is: ", corrected_user_input)
 
-    processed_input = processing(corrected_user_input, comb["lemmatize"])
-    if comb['stop_word'] > 0:
+    if comb['num_stop_words'] > 0:
         processed_input = [token for token in processed_input
                            if token not in stop_words]
 

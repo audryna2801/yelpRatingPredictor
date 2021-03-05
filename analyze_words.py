@@ -20,10 +20,10 @@ def keep_chr(ch):
     '''
     Find all characters that are classifed as punctuation
     in Unicode and combine them into a single string.
-    
+
     Inputs:
       - ch (str): Unicode character
-        
+
     Returns: Boolean
     '''
     return unicodedata.category(ch).startswith('P')
@@ -35,8 +35,8 @@ PUNCTUATION = " ".join([chr(i) for i in range(sys.maxunicode)
 
 # Pre-processing stage
 def processing(text, lemmatized):  # Word-splitting is still buggy
-                                   # (..., internal ., trailing and
-                                   # leading " and ', etc.)
+    # (..., internal ., trailing and
+    # leading " and ', etc.)
     '''
     Convert a text of a review into a list of strings.
 
@@ -51,10 +51,10 @@ def processing(text, lemmatized):  # Word-splitting is still buggy
 
     for word in split_text:
         # Handle trailing and internal punctuation
-        word = word.strip(PUNCTUATION)
         word = word.replace("&apos;", "'")
         word = word.replace("quot;", '"')
         word = word.replace("&quot", '"')
+        word = word.strip(PUNCTUATION)
 
         word = word.lower()
 

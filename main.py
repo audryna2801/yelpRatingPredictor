@@ -63,7 +63,9 @@ def process_input(user_input):
     textBlb = TextBlob(user_input)
     corrected_user_input = textBlb.correct()
     print("Your review is: ", corrected_user_input)
+    processed_input = processing(corrected_user_input, comb['lemmatize'])
 
+    # correct this to 'num_stop_words'
     if comb['num_stop_words'] > 0:
         processed_input = [token for token in processed_input
                            if token not in stop_words]

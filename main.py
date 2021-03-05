@@ -4,6 +4,7 @@ from model import *
 import sys
 import json
 import joblib
+from textblob import TextBlob
 
 
 def user_interface():
@@ -26,7 +27,7 @@ def user_interface():
                 print("Please input a longer review.")
 
         x_array = process_input(review)
-        final_model = joblib.load("perfect_model.pkl")
+        final_model = joblib.load("optimal_args/final_model.pkl")
         prediction = predictModel(final_model, [x_array])
         star_rating = int(prediction)
 
@@ -48,17 +49,21 @@ def process_input(user_input):
 
     Returns: arr
     '''
-    with open("columns.json") as f:
+    with open("optimal_args/columns.json") as f:
         columns = json.load(f)
-    with open("idf.json") as f:
+    with open("optimal_args/idf.json") as f:
         idf = json.load(f)
-    with open("combination.json") as f:
+    with open("optimal_args/combination.json") as f:
         comb = json.load(f)
-    with open("stop_words.json") as f:
+    with open("optimal_args/stop_words.json") as f:
         stop_words = json.load(f)
 
-    processed_input = processing(user_input, comb["lemmatize"])
+    # Fix spelling errors before prediction
+    textBlb = TextBlob(user_input)
+    corrected_user_input = textBlb.correct()
+    print("Your review is: ", corrected_user_input)
 
+    processed_input = processing(corrected_user_input, comb["lemmatize"])
     if comb['stop_word'] > 0:
         processed_input = [token for token in processed_input
                            if token not in stop_words]

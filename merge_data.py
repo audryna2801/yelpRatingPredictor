@@ -38,4 +38,4 @@ def merge_data(scraped_data_dir="scraped_data/", num_samples=10000,
                    .reset_index(drop=True))
 
     # Write concat_data to CSV
-    concat_data.to_csv("merged_data.csv", index=False)
+    concat_data.to_csv("merged_data.csv", header=False, index=False)

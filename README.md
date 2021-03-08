@@ -51,5 +51,9 @@ This contains the data that we test on, aka what our merged_data.py creates.
 ### On optimizing the model
 We optimized our model using the standard training-testing split 80-20 as well as a 5-95 split. Our best combination (ngram, lemmatize, num_stop_words, alpha) was: (1, False, 0, 0.001) for the first split and (1, False, 0, 0.1) for the second. The resulting combination was mostly similar, with the exception of the alpha parameter. This indicates that our optimizing function is more or less robust. 
 
-### Downsides
-Our program largely depends on wording, not sentiment. Humans are able to detect inflection and tone when reading whereas our program cannot. Because of the time constraints of this project, we were unable to implement a program that can detect sarcasm and therefore, sometimes mixes up reviews that were meant to be read ironically, as literally. However, when given a robust review of honest opinions and feelings towards a restaurant, our program is able to accurately predict the star rating most of the time. 
+It is interesting to note that not lemmatizing tokens, improved predictive powers. We suspect that tenses in reviews play an oversized impact on overall attitude towards restaurants. For instance, "was recommended" and "highly recommend" both contain the root word recommend. However, the first string is 'neutral' in tone, wheras the second string is more 'positive'.
+
+Further, the optimal number of stop words appear to be 0 from our testing. This is likely due to the limited number of unique words used in the context of restaurant reviews. As such, each word carries greater weight, and even frequently appearing words have an impact on the overall judgement of the model.
+
+### Limitations
+Our program largely depends on wording, not sentiment. Humans are able to detect satire and irony when reading whereas our program cannot. Because of the time constraints of this project, we were unable to implement a program that can detect sarcasm and therefore, sometimes mixes up reviews that were meant to be read ironically, literally. However, when given a robust review of honest opinions and feelings towards a restaurant, our program is able to accurately predict the star rating most of the time. That is, as long as users input reviews sincerely, the model is able to perform adequately.

@@ -5,9 +5,6 @@ import numpy as np
 import glob
 
 
-# Goal: Collect 10,000 reviews, with 2,000 reviews in each category
-
-
 def merge_data(scraped_data_dir="scraped_data/", num_samples=10000,
                random_state=1234):
     '''

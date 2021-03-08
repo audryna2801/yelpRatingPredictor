@@ -237,8 +237,9 @@ def crawl_city(city_url):
     resto_pages = []
 
     # Each page has 10 restaurants, so we increment by 10
-    for i in range(0, total_restos + 1, 10):
+    for i in range(0, total_restos+1, 10):
         resto_pages.append(city_url + "&start=" + str(i))
+        print(city_url + "&start=" + str(i))
 
     city_restos = []
     for resto_page in resto_pages:
@@ -272,6 +273,7 @@ def crawl_and_scrape(counter=15,
     Returns: None, writes a CSV file
     '''
     city_restos = crawl_city(city_url)
+    print("success at generating list of restos")
 
     for i, resto in enumerate(city_restos):
         filename = csv_repo + str(i) + ".csv"

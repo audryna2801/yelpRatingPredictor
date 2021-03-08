@@ -200,7 +200,7 @@ def crawl_resto(url, writer, counter):
         time.sleep(random.randint(1, 3))
 
 
-def get_links_from_page(url):
+def get_links_from_page(url, counter):
     '''
     Given a URL, scrape all other URLs that refer to restaurant
     home pages, and convert it to an absolute URL.
@@ -212,7 +212,19 @@ def get_links_from_page(url):
     '''
     html = read_url(url)
     soup = bs4.BeautifulSoup(html, "lxml")
+
     all_tags = soup.find_all("a", href=True)
+
+    if not all_tags:
+        for _ in range(counter):
+            all_tags = soup.find_all("a", href=True)
+            time.sleep(random.randint(1, 3))
+            if all_tags:
+                break
+        if not all_tags:
+            print("Failure at page " + str(url))
+            return None
+
     all_links = [tag.get("href") for tag in all_tags]
     good_links = {convert_if_relative_url(link) for link
                   in all_links if link.startswith("/biz")
@@ -221,7 +233,7 @@ def get_links_from_page(url):
     return good_links
 
 
-def crawl_city(city_url):
+def crawl_city(city_url, counter):
     '''
     Crawl a city and get all the URLs of restaurants within
     the city.
@@ -243,7 +255,7 @@ def crawl_city(city_url):
 
     city_restos = []
     for resto_page in resto_pages:
-        city_restos += get_links_from_page(resto_page)
+        city_restos += get_links_from_page(resto_page, counter)
         # Random sleep to avoid being banned by Yelp
         time.sleep(random.randint(1, 3))
 
@@ -254,7 +266,7 @@ def crawl_and_scrape(counter=15,
                      city_url=("https://www.yelp.com/"
                                "search?find_desc=&"
                                "find_loc=Chicago%2C%20IL"),
-                     csv_repo="scraped_data/"):
+                     csv_repo="scraped_data_final_test/"):
     '''
     Crawl the city of Chicago, unless another city url is given,
     and export all reviews from restaurants in that city to a CSV
@@ -272,8 +284,9 @@ def crawl_and_scrape(counter=15,
 
     Returns: None, writes a CSV file
     '''
-    city_restos = crawl_city(city_url)
+    city_restos = crawl_city(city_url, counter)
     print("success at generating list of restos")
+    print(city_restos)
 
     for i, resto in enumerate(city_restos):
         filename = csv_repo + str(i) + ".csv"

@@ -83,7 +83,70 @@ def convert_if_relative_url(new_url, main_url=MAIN_URL):
         return urllib.parse.urljoin(main_url, new_url)
 
 
-# Crawling and scraping functions
+def get_links_from_page(url, counter):
+    '''
+    Given a URL, scrape all other URLs that refer to restaurant
+    home pages, and convert it to an absolute URL.
+
+    Inputs: 
+      - url (str): URL
+
+    Returns: set of restaurant links from the page
+    '''
+    html = read_url(url)
+    soup = bs4.BeautifulSoup(html, "lxml")
+
+    all_tags = soup.find_all("a", href=True)
+
+    # Try again if tags cannot be found;
+    # Number of tries depends on counter
+    if not all_tags:
+        for _ in range(counter):
+            all_tags = soup.find_all("a", href=True)
+            time.sleep(random.randint(1, 3))
+            if all_tags:
+                break
+        if not all_tags:
+            print("Failure at page " + str(url))
+            return None
+
+    all_links = [tag.get("href") for tag in all_tags]
+    good_links = {convert_if_relative_url(link) for link
+                  in all_links if link.startswith("/biz")
+                  and "?" not in link}
+
+    return good_links
+
+
+def crawl_city(city_url, counter):
+    '''
+    Crawl a city and get all the URLs of restaurants within
+    the city.
+
+    Inputs:
+      - city_url (str): URL of the city's page on Yelp
+
+    Returns: list of restaurant links in city
+    '''
+    # Yelp displays 24 pages of restaurants for each location
+    total_pages = 24
+    total_restos = total_pages * 10
+    resto_pages = []
+
+    # Each page has 10 restaurants, so we increment by 10
+    for i in range(0, total_restos+1, 10):
+        resto_pages.append(city_url + "&start=" + str(i))
+        print(city_url + "&start=" + str(i))
+
+    city_restos = []
+    for resto_page in resto_pages:
+        city_restos += get_links_from_page(resto_page, counter)
+        # Random sleep to avoid being banned by Yelp
+        time.sleep(random.randint(1, 3))
+
+    return city_restos
+
+
 def get_total_reviews(soup, counter):
     '''
     Given a soup object representing a page, obtain the total
@@ -198,68 +261,6 @@ def crawl_resto(url, writer, counter):
         get_reviews_from_page(review_page, writer, counter)
         # Random sleep to avoid being banned by Yelp
         time.sleep(random.randint(1, 3))
-
-
-def get_links_from_page(url, counter):
-    '''
-    Given a URL, scrape all other URLs that refer to restaurant
-    home pages, and convert it to an absolute URL.
-
-    Inputs: 
-      - url (str): URL
-
-    Returns: set of restaurant links from the page
-    '''
-    html = read_url(url)
-    soup = bs4.BeautifulSoup(html, "lxml")
-
-    all_tags = soup.find_all("a", href=True)
-
-    if not all_tags:
-        for _ in range(counter):
-            all_tags = soup.find_all("a", href=True)
-            time.sleep(random.randint(1, 3))
-            if all_tags:
-                break
-        if not all_tags:
-            print("Failure at page " + str(url))
-            return None
-
-    all_links = [tag.get("href") for tag in all_tags]
-    good_links = {convert_if_relative_url(link) for link
-                  in all_links if link.startswith("/biz")
-                  and "?" not in link}
-
-    return good_links
-
-
-def crawl_city(city_url, counter):
-    '''
-    Crawl a city and get all the URLs of restaurants within
-    the city.
-
-    Inputs:
-      - city_url (str): URL of the city's page on Yelp
-
-    Returns: list of restaurant links in city
-    '''
-    # Yelp displays 24 pages of restaurants for each location
-    total_pages = 24
-    total_restos = total_pages * 10
-    resto_pages = []
-
-    # Each page has 10 restaurants, so we increment by 10
-    for i in range(0, total_restos+1, 10):
-        resto_pages.append(city_url + "&start=" + str(i))
-        print(city_url + "&start=" + str(i))
-
-    city_restos = []
-    for resto_page in resto_pages:
-        city_restos += get_links_from_page(resto_page, counter)
-        # Random sleep to avoid being banned by Yelp
-        time.sleep(random.randint(1, 3))
-
-    return city_restos
 
 
 def crawl_and_scrape(counter=15,

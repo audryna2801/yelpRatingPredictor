@@ -108,7 +108,7 @@ def get_links_from_page(url, counter):
                 break
         if not all_tags:
             print("Failure at page " + str(url))
-            return None
+            return []  # Empty because links from this page cannot be scraped
 
     all_links = [tag.get("href") for tag in all_tags]
     good_links = {convert_if_relative_url(link) for link

@@ -9,8 +9,19 @@ from util import convert_if_relative_url, read_url
 
 def try_(counter, find_links, soup):
     '''
-# Try again if tags cannot be found;
-    # Number of tries depends on counter
+    Repeatedly attempt to extract link tags or script tags from a page
+    until succeeding or exceeding the maximum number of attempts.
+
+    Inputs:
+      - counter (int): if the program gets blocked by Yelp,
+                       how many times should it try again
+                       before giving up and skipping (higher
+                       number corresponds to longer run-time
+                       but fewer pages skipped)
+      - find_links (Bool): whether to extract link tags or script tags
+      - soup (BeautifulSoup): soup object
+
+    Returns: tags (Tag) if found, None otherwise
     '''
     for _ in range(counter):
         if find_links:
@@ -30,6 +41,11 @@ def get_links_from_page(url, counter):
 
     Inputs: 
       - url (str): URL
+      - counter (int): if the program gets blocked by Yelp,
+                       how many times should it try again
+                       before giving up and skipping (higher
+                       number corresponds to longer run-time
+                       but fewer pages skipped)
 
     Returns: set of restaurant links from the page
     '''
@@ -57,6 +73,11 @@ def crawl_city(city_url, counter):
 
     Inputs:
       - city_url (str): URL of the city's page on Yelp
+      - counter (int): if the program gets blocked by Yelp,
+                       how many times should it try again
+                       before giving up and skipping (higher
+                       number corresponds to longer run-time
+                       but fewer pages skipped)
 
     Returns: list of restaurant links in city
     '''
@@ -80,12 +101,12 @@ def crawl_city(city_url, counter):
 
 def get_total_reviews(soup, counter):
     '''
-    Given a soup object representing a page, obtain the total
-    number of reviews to help the program determine how many
+    Given a BeautifulSoup object representing a page, obtain the
+    total number of reviews to help the program determine how many
     pages of reviews to scrape.
 
     Inputs:
-      - soup (bs4 object): soup object
+      - soup (BeautifulSoup): soup object
       - counter (int): if the program gets blocked by Yelp,
                        how many times should it try again
                        before giving up and skipping (higher
@@ -143,7 +164,7 @@ def get_reviews_from_page(url, writer, counter):
 
 def crawl_resto(url, writer, counter):
     '''
-    Crawl the restaurant and get all reviews from the restaurant
+    Crawl the restaurant and get all reviews from the restaurant.
 
     Inputs:
       - url (str): URL
@@ -182,7 +203,7 @@ def crawl_and_scrape(counter=15,
                      city_url=("https://www.yelp.com/"
                                "search?find_desc=&"
                                "find_loc=Chicago%2C%20IL"),
-                     csv_repo="scraped_data_final_test/"):
+                     csv_repo="scraped_data/"):
     '''
     Crawl the city of Chicago, unless another city url is given,
     and export all reviews from restaurants in that city to a CSV
@@ -203,7 +224,7 @@ def crawl_and_scrape(counter=15,
     city_restos = crawl_city(city_url, counter)
     if not city_restos:
         return "Failed to scrape restaurant links, try a higher counter"
-    print("success at generating list of restaurant links")
+    print("Successfully generated list of restaurant links")
     print(city_restos)
 
     for i, resto in enumerate(city_restos):

@@ -28,7 +28,7 @@ def evaluateModel(prediction, y_test):
     pred_test_df["difference"] = (pred_test_df.predict
                                   - pred_test_df.actual).abs()
 
-    num_tests = len(pred_test_df.index)
+    num_tests = len(pred_test_df)
     total_deviance = pred_test_df["difference"].sum()
 
     # Maximum deviance is 4 (5-star rating vs. 1-star rating)

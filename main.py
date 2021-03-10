@@ -63,7 +63,6 @@ def process_input(user_input):
     # Fix spelling errors before prediction
     textBlb = TextBlob(user_input)
     corrected_user_input = textBlb.correct()
-    print("Your review is: ", corrected_user_input)
     processed_input = processing(corrected_user_input, combi["lemmatize"])
 
     if combi["num_stop_words"] > 0:

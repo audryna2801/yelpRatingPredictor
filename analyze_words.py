@@ -5,6 +5,7 @@ import pandas as pd
 import re
 import csv
 import itertools
+import string
 from textblob import TextBlob
 import nltk
 from nltk.stem import WordNetLemmatizer
@@ -14,28 +15,12 @@ nltk.download("wordnet")
 
 # Generating global variables
 STOP_PREFIXES = ("@", "#", "http", "&amp")
-
-
-def keep_chr(ch):
-    '''
-    Find all characters that are classifed as punctuation
-    in Unicode and combine them into a single string.
-
-    Inputs:
-      - ch (str): Unicode character
-
-    Returns: Boolean
-    '''
-    return unicodedata.category(ch).startswith("P")
-
-
-PUNCTUATION = " ".join([chr(i) for i in range(sys.maxunicode)
-                        if keep_chr(chr(i))])
+PUNCTUATION = string.punctuation + "…"
+INTERNAL_PUNCTUATION = set(PUNCTUATION) - {"'"}
 
 
 # Pre-processing stage
-def processing(text, lemmatized):  # Word-splitting is still buggy
-    # (..., internal)
+def processing(text, lemmatized):
     '''
     Convert a text of a review into a list of strings.
 
@@ -49,26 +34,26 @@ def processing(text, lemmatized):  # Word-splitting is still buggy
     new_text = []
 
     for word in split_text:
-        # Handle trailing and internal punctuation
+        # Handle trailing punctuation
         word = word.replace("&apos;", "'")
         word = word.replace("quot;", '"')
         word = word.replace("&quot", '"')
         word = word.strip(PUNCTUATION)
 
-        word = word.lower()
+        # Handle internal punctuation
+        word_set = set(word)
+        punc_in_word = word_set.intersection(INTERNAL_PUNCTUATION)
 
-        if lemmatized:
-            lemmatizer.lemmatize(word)
+        for punc in punc_in_word:
+            word = word.replace(punc, " ")
 
-        # Split word if "/" present
-        if "/" in word:
-            words = word.split("/")
-            new_text += [word for word in words if not
-                         bool(re.search(r"\d", word)) and
-                         not word.startswith(STOP_PREFIXES)]
-        elif (word and not bool(re.search(r"\d", word))
-              and not word.startswith(STOP_PREFIXES)):
-            new_text.append(word)
+        for word in word.split():
+            word = word.lower()
+            if lemmatized:
+                lemmatizer.lemmatize(word)
+            if (word and not bool(re.search(r"\d", word))
+                    and not word.startswith(STOP_PREFIXES)):
+                new_text.append(word)
 
     return new_text
 
@@ -133,7 +118,7 @@ def compute_idf(docs):
     '''
     Calculate the inverse document frequency (idf) for each
     token in a collection of documents (D), where
-        idf(t, D) = log(total number of documents in D / 
+        idf(t, D) = log(total number of documents in D /
                         number of documents containing t).
 
     Inputs:
@@ -188,7 +173,7 @@ def get_df_idf_stops(csv_file, n, lemmatized,
     dataframe that vectorizes the text, and join it back with the
     rating column.
 
-    Inputs: 
+    Inputs:
         csv_file (str): CSV file containing scraped Yelp reviews
         n (int): range of n-grams to use
         lemmatized (bool): whether or not to lemmatize words
@@ -198,8 +183,8 @@ def get_df_idf_stops(csv_file, n, lemmatized,
     '''
 
     df = pd.read_csv(csv_file, usecols=[0, 1],
-                               names=["Rating", "Text"],
-                               header=None)
+                     names=["Rating", "Text"],
+                     header=None)
     all_tokens = [processing(text, lemmatized) for text in df.Text]
 
     if num_stop_words > 0:

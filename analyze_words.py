@@ -182,9 +182,7 @@ def get_df_idf_stops(csv_file, n, lemmatized,
     Returns: DataFrame, dict (idf), and list (stop words)
     '''
 
-    df = pd.read_csv(csv_file, usecols=[0, 1],
-                     names=["Rating", "Text"],
-                     header=None)
+    df = pd.read_csv(csv_file)
     all_tokens = [processing(text, lemmatized) for text in df.Text]
 
     if num_stop_words > 0:

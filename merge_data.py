@@ -25,7 +25,10 @@ def merge_data(scraped_data_dir="scraped_data/", num_samples=10000,
                     if file_name.endswith(".csv")]
 
     # Concatenate all DataFrames together
-    df_from_each_file = (pd.read_csv(f) for f in all_rest_csv)
+    df_from_each_file = (pd.read_csv(f, usecols=[0, 1],
+                                     names=["Rating", "Text"],
+                                     header=None)
+                         for f in all_rest_csv)
     concatenated_df = pd.concat(df_from_each_file, ignore_index=True)
     print(concatenated_df)
 
@@ -36,4 +39,4 @@ def merge_data(scraped_data_dir="scraped_data/", num_samples=10000,
         n=num_samples_per_rating, random_state=random_state).reset_index(drop=True))
 
     # Write concat_data to CSV
-    concat_data.to_csv("merged_data_testing.csv", header=False, index=False)
+    concat_data.to_csv("merged_data_testing.csv", index=False)

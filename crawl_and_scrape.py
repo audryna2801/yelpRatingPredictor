@@ -7,6 +7,22 @@ import random
 from util import convert_if_relative_url, read_url
 
 
+def try_(counter, find_links, soup):
+    '''
+# Try again if tags cannot be found;
+    # Number of tries depends on counter
+    '''
+    for _ in range(counter):
+        if find_links:
+            tags = soup.find_all("a", href=True)
+        else:
+            tags = soup.find("script", type="application/ld+json")
+        time.sleep(random.randint(1, 3))
+        if tags:
+            return tags
+    return None
+
+
 def get_links_from_page(url, counter):
     '''
     Given a URL, scrape all other URLs that refer to restaurant
@@ -20,19 +36,11 @@ def get_links_from_page(url, counter):
     html = read_url(url)
     soup = bs4.BeautifulSoup(html, "lxml")
 
-    all_tags = soup.find_all("a", href=True)
+    all_tags = try_(counter, True, soup)
 
-    # Try again if tags cannot be found;
-    # Number of tries depends on counter
     if not all_tags:
-        for _ in range(counter):
-            all_tags = soup.find_all("a", href=True)
-            time.sleep(random.randint(1, 3))
-            if all_tags:
-                break
-        if not all_tags:
-            print("Failure at page " + str(url))
-            return []  # Empty because links from this page cannot be scraped
+        print("Failure at page " + str(url))
+        return []
 
     all_links = [tag.get("href") for tag in all_tags]
     good_links = {convert_if_relative_url(link) for link
@@ -86,18 +94,10 @@ def get_total_reviews(soup, counter):
 
     Returns: (int) total number reviews for a restaurant
     '''
-    tag = soup.find("script", type="application/ld+json")
+    tag = try_(counter, False, soup)
 
-    # Try again if tag cannot be found;
-    # number of tries depends on counter
     if not tag:
-        for _ in range(counter):
-            tag = soup.find("script", type="application/ld+json")
-            time.sleep(random.randint(1, 3))
-            if tag:
-                break
-        if not tag:
-            return None
+        return None
 
     json_object = json.loads(tag.contents[0])
     total_reviews = json_object["aggregateRating"]["reviewCount"]
@@ -123,19 +123,11 @@ def get_reviews_from_page(url, writer, counter):
     '''
     html = read_url(url)
     soup = bs4.BeautifulSoup(html, "lxml")
-    tag = soup.find("script", type="application/ld+json")
+    tag = try_(counter, False, soup)
 
-    # Tries again if tag cannot be found;
-    # number of tries depend on counter
     if not tag:
-        for _ in range(counter):
-            tag = soup.find("script", type="application/ld+json")
-            time.sleep(random.randint(1, 3))
-            if tag:
-                break
-        if not tag:
-            print("Failure at page " + str(url))
-            return None
+        print("Failure at page " + str(url))
+        return None
 
     print("Success at page " + str(url))
 
@@ -209,7 +201,9 @@ def crawl_and_scrape(counter=15,
     Returns: None, writes a CSV file
     '''
     city_restos = crawl_city(city_url, counter)
-    print("success at generating list of restos")
+    if not city_restos:
+        return "Failed to scrape restaurant links, try a higher counter"
+    print("success at generating list of restaurant links")
     print(city_restos)
 
     for i, resto in enumerate(city_restos):

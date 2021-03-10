@@ -10,6 +10,9 @@ Make sure you have all of the libraries downloaded. In the terminal, run "python
 
 ## FILES
 
+### util.py
+This file contains utility functions for dealing with URLs.
+
 ### crawl_and_scrape.py
 This file was created to scrape the data necessary for training our model. Using Beautiful Soup, this takes the Yelp landing page for Chicago restaurants and scrapes the URL for every restaurant in the city landing page. Then for every restaurant, it scrapes all of the reviews into a CSV file. We have elected to create a separate CSV file for each restaurant as the crawling process takes a long time, and it would easier to continue scraping from when the scraping process times out.
 

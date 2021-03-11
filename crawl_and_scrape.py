@@ -88,7 +88,6 @@ def crawl_city(city_url, counter):
     # Each page has 10 restaurants, so we increment by 10
     for i in range(0, total_restos+1, 10):
         resto_pages.append(city_url + "&start=" + str(i))
-        print(city_url + "&start=" + str(i))
 
     city_restos = []
     for resto_page in resto_pages:
@@ -140,7 +139,7 @@ def get_reviews_from_page(url, writer, counter):
                        number corresponds to longer run-time
                        but fewer pages skipped)
 
-    Returns: None, modifies the CSV file in place
+    Returns: (int) number of additional reviews written to CSV
     '''
     html = read_url(url)
     soup = bs4.BeautifulSoup(html, "lxml")
@@ -148,21 +147,25 @@ def get_reviews_from_page(url, writer, counter):
 
     if not tag:
         print("Failure at page " + str(url))
-        return None
+        return 0
 
     print("Success at page " + str(url))
 
     json_object = json.loads(tag.contents[0])
     reviews = json_object["review"]
+    additional_rev = 0
 
     for review in reviews:
         rating = review["reviewRating"]["ratingValue"]
         text = review["description"]
         row = [rating, text]
         writer.writerow(row)
+        additional_rev += 1
+
+    return additional_rev
 
 
-def crawl_resto(url, writer, counter):
+def crawl_resto(url, writer, counter, max_revs_per_resto):
     '''
     Crawl the restaurant and get all reviews from the restaurant.
 
@@ -174,6 +177,9 @@ def crawl_resto(url, writer, counter):
                        before giving up and skipping (higher
                        number corresponds to longer run-time
                        but fewer pages skipped)
+      - max_revs_per_resto (int): to scrape a variety of websites
+                                  faster, limit number of reviews
+                                  scraped per restaurant
 
     Returns: None, modifies the CSV file in place
     '''
@@ -193,8 +199,12 @@ def crawl_resto(url, writer, counter):
     for i in range(0, total_reviews, 20):
         review_pages.append(url + "?start=" + str(i))
 
+    total_rev = 0
     for review_page in review_pages:
-        get_reviews_from_page(review_page, writer, counter)
+        rev_count = get_reviews_from_page(review_page, writer, counter)
+        total_rev += rev_count
+        if total_rev >= max_revs_per_resto:
+            break
         # Random sleep to avoid being banned by Yelp
         time.sleep(random.randint(1, 3))
 
@@ -203,7 +213,8 @@ def crawl_and_scrape(counter=15,
                      city_url=("https://www.yelp.com/"
                                "search?find_desc=&"
                                "find_loc=Chicago%2C%20IL"),
-                     csv_repo="scraped_data/"):
+                     csv_repo="scraped_data/",
+                     max_revs_per_resto=200):
     '''
     Crawl the city of Chicago, unless another city url is given,
     and export all reviews from restaurants in that city to a CSV
@@ -218,6 +229,9 @@ def crawl_and_scrape(counter=15,
       - city_url (str): Yelp URL of the city
       - csv_repo (str): name of repository in which to store
                         scraped data
+      - max_revs_per_resto (int): to scrape a variety of websites
+                                  faster, limit number of reviews
+                                  scraped per restaurant
 
     Returns: None, writes a CSV file
     '''
@@ -231,6 +245,6 @@ def crawl_and_scrape(counter=15,
         filename = csv_repo + str(i) + ".csv"
         with open(filename, "w") as f:
             csvwriter = csv.writer(f)
-            crawl_resto(resto, csvwriter, counter)
+            crawl_resto(resto, csvwriter, counter, max_revs_per_resto)
             # Random sleep to avoid being banned by Yelp
             time.sleep(random.randint(1, 3))

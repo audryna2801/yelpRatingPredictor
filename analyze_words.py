@@ -15,8 +15,8 @@ nltk.download("wordnet")
 
 # Generating global variables
 STOP_PREFIXES = ("@", "#", "http", "&amp")
-PUNCTUATION = string.punctuation + "…"
-INTERNAL_PUNCTUATION = set(PUNCTUATION) - {"'"}
+PUNCTUATION = string.punctuation + "…"  # added the special character elipsis
+INTERNAL_PUNCTUATION = set(PUNCTUATION) - {"'"}  # want to keep apostrophe
 
 
 # Pre-processing stage

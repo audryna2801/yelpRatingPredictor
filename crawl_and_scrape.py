@@ -28,7 +28,7 @@ def try_(counter, find_links, soup):
             tags = soup.find_all("a", href=True)
         else:
             tags = soup.find("script", type="application/ld+json")
-        time.sleep(random.randint(1, 3))
+        time.sleep(random.randint(3, 5))
         if tags:
             return tags
     return None
@@ -93,7 +93,7 @@ def crawl_city(city_url, counter):
     for resto_page in resto_pages:
         city_restos += get_links_from_page(resto_page, counter)
         # Random sleep to avoid being banned by Yelp
-        time.sleep(random.randint(1, 3))
+        time.sleep(random.randint(3, 5))
 
     return city_restos
 
@@ -177,9 +177,11 @@ def crawl_resto(url, writer, counter, max_revs_per_resto):
                        before giving up and skipping (higher
                        number corresponds to longer run-time
                        but fewer pages skipped)
-      - max_revs_per_resto (int): to scrape a variety of websites
-                                  faster, limit number of reviews
+      - max_revs_per_resto (int): limit number of reviews
                                   scraped per restaurant
+                                  (to enable scraping of
+                                  a variety of restaurants 
+                                  faster)
 
     Returns: None, modifies the CSV file in place
     '''
@@ -206,15 +208,13 @@ def crawl_resto(url, writer, counter, max_revs_per_resto):
         if total_rev >= max_revs_per_resto:
             break
         # Random sleep to avoid being banned by Yelp
-        time.sleep(random.randint(1, 3))
+        time.sleep(random.randint(3, 5))
 
 
-def crawl_and_scrape(counter=15,
-                     city_url=("https://www.yelp.com/"
-                               "search?find_desc=&"
-                               "find_loc=Chicago%2C%20IL"),
-                     csv_repo="scraped_data/",
-                     max_revs_per_resto=200):
+def crawl_and_scrape(counter=30,
+                     max_revs_per_resto=20,
+                     city_url,
+                     csv_repo):
     '''
     Crawl the city of Chicago, unless another city url is given,
     and export all reviews from restaurants in that city to a CSV
@@ -226,12 +226,15 @@ def crawl_and_scrape(counter=15,
                        before giving up and skipping (higher
                        number corresponds to longer run-time
                        but fewer pages skipped)
+      - max_revs_per_resto (int): limit number of reviews
+                                  scraped per restaurant
+                                  (to enable scraping of
+                                  a variety of restaurants 
+                                  faster)
       - city_url (str): Yelp URL of the city
       - csv_repo (str): name of repository in which to store
                         scraped data
-      - max_revs_per_resto (int): to scrape a variety of websites
-                                  faster, limit number of reviews
-                                  scraped per restaurant
+
 
     Returns: None, writes a CSV file
     '''
@@ -247,4 +250,4 @@ def crawl_and_scrape(counter=15,
             csvwriter = csv.writer(f)
             crawl_resto(resto, csvwriter, counter, max_revs_per_resto)
             # Random sleep to avoid being banned by Yelp
-            time.sleep(random.randint(1, 3))
+            time.sleep(random.randint(3, 5))

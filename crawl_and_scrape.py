@@ -211,10 +211,10 @@ def crawl_resto(url, writer, counter, max_revs_per_resto):
         time.sleep(random.randint(3, 5))
 
 
-def crawl_and_scrape(counter=30,
-                     max_revs_per_resto=20,
-                     city_url,
-                     csv_repo):
+def crawl_and_scrape(city_url,
+                     csv_repo,
+                     counter=30,
+                     max_revs_per_resto=20):
     '''
     Crawl the city of Chicago, unless another city url is given,
     and export all reviews from restaurants in that city to a CSV

@@ -11,7 +11,7 @@ import nltk
 from nltk.stem import WordNetLemmatizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import CountVectorizer
-nltk.download("wordnet")
+# nltk.download("wordnet") --> uncomment if missing wordnet nltk library
 
 
 # Generating global variables

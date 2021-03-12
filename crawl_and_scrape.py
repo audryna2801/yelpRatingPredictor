@@ -28,9 +28,13 @@ def try_(counter, find_links, soup):
             tags = soup.find_all("a", href=True)
         else:
             tags = soup.find("script", type="application/ld+json")
-        time.sleep(random.randint(3, 5))
+
         if tags:
             return tags
+
+        # Random sleep to avoid being banned by Yelp
+        time.sleep(random.randint(3, 5))
+
     return None
 
 
@@ -144,16 +148,16 @@ def get_reviews_from_page(url, writer, counter):
     html = read_url(url)
     soup = bs4.BeautifulSoup(html, "lxml")
     tag = try_(counter, False, soup)
+    additional_rev = 0
 
     if not tag:
         print("Failure at page " + str(url))
-        return 0
+        return additional_rev
 
     print("Success at page " + str(url))
 
     json_object = json.loads(tag.contents[0])
     reviews = json_object["review"]
-    additional_rev = 0
 
     for review in reviews:
         rating = review["reviewRating"]["ratingValue"]
@@ -177,7 +181,7 @@ def crawl_resto(url, writer, counter, max_revs_per_resto):
                        before giving up and skipping (higher
                        number corresponds to longer run-time
                        but fewer pages skipped)
-      - max_revs_per_resto (int): limit number of reviews
+      - max_revs_per_resto (int): max number of reviews
                                   scraped per restaurant
                                   (to enable scraping of
                                   a variety of restaurants 
@@ -216,32 +220,32 @@ def crawl_and_scrape(city_url,
                      counter=30,
                      max_revs_per_resto=20):
     '''
-    Crawl the city of Chicago, unless another city url is given,
+    Crawl a given city landing page according to the provided URL
     and export all reviews from restaurants in that city to a CSV
     file. CSV file does not contain headers.
 
     Inputs:
+      - city_url (str): Yelp URL of the city
+      - csv_repo (str): name of repository in which to store
+                        scraped data
       - counter (int): if the program gets blocked by Yelp,
                        how many times should it try again
                        before giving up and skipping (higher
                        number corresponds to longer run-time
                        but fewer pages skipped)
-      - max_revs_per_resto (int): limit number of reviews
+      - max_revs_per_resto (int): max number of reviews
                                   scraped per restaurant
                                   (to enable scraping of
                                   a variety of restaurants 
                                   faster)
-      - city_url (str): Yelp URL of the city
-      - csv_repo (str): name of repository in which to store
-                        scraped data
-
 
     Returns: None, writes a CSV file
     '''
     city_restos = crawl_city(city_url, counter)
     if not city_restos:
         return "Failed to scrape restaurant links, try a higher counter"
-    print("Successfully generated list of restaurant links")
+    print(("Successfully generated list of "
+           "{} restaurant links").format(len(city_restos)))
     print(city_restos)
 
     for i, resto in enumerate(city_restos):

@@ -6,7 +6,7 @@ Our goal for this project was to create a program that predicts a Yelp rating (o
 
 ## RUNNING THE PROGRAM
 
-Make sure you have all of the libraries downloaded. In the terminal, run "python3 main.py". Type in your review and press enter to get the star rating.
+Make sure you have all of the libraries downloaded. Run "python3 main.py" in the terminal or "run main.py" in jupyter notebook. Type in your review and press enter to get the star rating.
 
 ## FILES
 
@@ -18,12 +18,12 @@ This file was created to scrape the data necessary for training our model. Using
 
 One feature of this file contains the element of "sleeping" and a user-defined counter (where a higher number corresponds to a longer run-time but fewer pages skipped). Yelp attempts to block attempts for web-scraping, making it hard for an algorithm to go through the web pages without being blocked. With this caveat in mind, we created a feature such that during scraping, for each page, it would randomly "sleep" to try to bypass the Yelp's detection system and/or tries again "counter" many times if it fails, before giving up and skipping the page. This ended up working as we were able to collect more reviews than before. However, this comes at the cost of a longer runtime due to the random "sleeps" and more retries. 
 
-Another feature of this file is that we've included a maximum number of reviews per restaurant parameter for users to decide upon crawling and scraping. This enables users to get reviews from a variety of restaurants at a faster rate because once this maximum number is reached, the crawler will skip to the next restaurant. This also allows for more equal distribution of reviews for each restaurant/cuisine because in Yelp, some restaurants have around 8000 reviews while others only have around 1000 - 2000 reviews. 
+Another feature of this file is that we've included a maximum number of reviews per restaurant parameter for users to decide upon crawling and scraping. This enables users to get reviews from a variety of restaurants at a faster rate because once this maximum number is reached, the crawler will skip to the next restaurant. This also allows for more equal distribution of reviews for each restaurant/cuisine because, in Yelp, some restaurants have around 8000 reviews while others only have around 1000 - 2000 reviews. 
 
 ### merge_data.py
 This file contains one function that combines all restaurant reviews scraped using the functions in crawl_and_scrape.py into one DataFrame. Then, it grouped each review by rating and attempts to sample equally from each rating group to create a dataset with 5,000 reviews.
 
-If there is insufficient reviews from any particular rating group, then we will adjust accordingly and simply accept all reviews from the rating group. Additional reviews will be sampled from other rating groups instead. The final dataframe will be written into a CSV.
+If there are insufficient reviews from any particular rating group, then we will adjust accordingly and simply accept all reviews from the rating group. Additional reviews will be sampled from other rating groups instead. The final DataFrame will be written into a CSV.
 
 ### analyze_words.py
 This file focuses on processing the CSV file that contains the 10,000 balanced reviews (output of merged_data.py) and returning a DataFrame with the corpus' tokens as the columns and the TF-IDF values for each review as the rows. It considers the n-gram length, whether or not to lemmatize words, and how many stop words should be removed. 
@@ -40,7 +40,7 @@ Although feature selection reduced our overall accuracy (since it reduces the nu
 Then, "main_modelling" (after optimizing and feature selection) will save the best model as a PKL file, which is the model that we will use to predict the user's review input. It also saves the optimal vectorizer and selector in PKL files.
 
 ### main.py
-This file combines selector, vectorizer and model PKL files from the 'optimal_args' directory to complete our program's user interface. The user will be prompted by the UI to input their review. Before further tokenizing, the user input will be autocorrected (since reviews on Yelp contain little to none spelling mistakes due to autocorrection features on smartphones).
+This file combines selector, vectorizer, and model PKL files from the 'optimal_args' directory to complete our program's user interface. The user will be prompted by the UI to input their review. Before further tokenizing, the user input will be autocorrected (since reviews on Yelp contain little to no spelling mistakes due to autocorrection features on smartphones).
 
 Using the files from 'optimal_args', the text input will be turned into an array that matches our model's feature selected predictors. Then, it will call on our saved model to predict the appropriate star rating based on that array, before printing it to the user.
 
@@ -50,13 +50,13 @@ This file contains the print statements resulted from optimizing the model using
 ## FOLDERS
 
 ### iPython_Tests
-This contains Jupyter notebooks that we used for testing. To test that our program was accurate, we tested against various amounts of ratios between training and testing data and found that our model was consistently successful, even when given a smaller amount of training data. This folder mainly contain scrap work that we did and is not relevant to the the workings of our program. 
+This contains Jupyter notebooks that we used for testing. To test that our program was accurate, we tested against various amounts of ratios between training and testing data and found that our model was consistently successful, even when given a smaller amount of training data. This folder mainly contains scrap work that we did and is not relevant to the workings of our program. 
 
 ### optimal_args
 This folder contains all of the optimal arguments for our final model, created by model.py and used in the main.py. 
 
 ### scraped_data
-This contains all of the raw, scraped data from Yelp. Datasets are grouped based upon geographical locations. In our modelling, we used data from main cities in the United States such as New York, Chicago and Las Vegas.
+This contains all of the raw, scraped data from Yelp. Datasets are grouped based upon geographical locations. In our modeling, we used data from main cities in the United States such as New York, Chicago, and Las Vegas.
 
 ### test_data
 This contains the data that we test on, aka what our merged_data.py creates. 
@@ -67,7 +67,7 @@ This contains the data that we test on, aka what our merged_data.py creates.
 We optimized our model using the standard training-testing split 80-20 as well as a 5-95 split. Our best combination (ngram, num_stop_words, alpha) was: (2, 0, 0.0001) for the first split and (2, 0, 0.0001) for the second. The resulting combination was exactly the same. This indicates that our optimizing function is robust.
 The print statements for our optimization can be found in the optimizing_results.txt file. 
 
-It is interesting to note that the optimal number of stop words appears to be 0 from our testing. This is likely due to the limited number of unique words used in the context of restaurant reviews. As such, each word carries greater weight, and even frequently appearing words have an impact on the overall judgment of the model.
+It is interesting to note that the optimal number of stop words appears to be 0 from our testing. This is likely due to the limited number of unique words used in the context of restaurant reviews. As such, each word carries greater weight and even frequently appearing words have an impact on the overall judgment of the model.
 
 ### Limitations
 Humans can detect satire and irony when reading whereas our program cannot. Because of the time constraints of this project, we were unable to implement a program that can detect sarcasm and therefore, sometimes mixes up reviews that were meant to be read ironically, literally. However, when given a robust review of honest opinions and feelings towards a restaurant, our program can accurately predict the star rating most of the time. That is, as long as users input reviews sincerely, the model can perform adequately.
@@ -82,4 +82,4 @@ The terminal interface could also be enhanced by the presence of build-in word/s
 
 It turns out that due to restrictions imposed by Yelp.com, subsequent review pages(after page 1, for each restaurant) do not contain the relevant review information in its HTML source code. Due to time constraints, we will not be changing our scraping code drastically. As such, we will be only collecting 20 reviews from each restaurant. The shortfall in reviews is made up by scraping data from more cities. This is made possible by setting the "max_rev_per_resto" parameter to 20.
 
-In our attempts at scraping reviews, we used a 'counter' of 30, and could generate 2000-3000 reviews per city. We suggest using a VPN to do this.
+In our attempts at scraping reviews, we used a 'counter' of 30 and could generate 2000-3000 reviews per city. We suggest using a VPN to do this.

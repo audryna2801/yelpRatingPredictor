@@ -1,1 +1,1 @@
-{"ngram": 1, "lemmatize": true, "num_stop_words": 0, "alpha": 0.0001}
+{"ngram": 1, "lemmatize": false, "num_stop_words": 20, "alpha": 0.1}

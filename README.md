@@ -14,14 +14,17 @@ Make sure you have all of the libraries downloaded. In the terminal, run "python
 This file contains utility functions for dealing with URLs.
 
 ### crawl_and_scrape.py
-This file was created to scrape the data necessary for training our model. Using Beautiful Soup, this takes the Yelp landing page for Chicago restaurants and scrapes the URL for every restaurant in the city landing page. Then for every restaurant, it scrapes all of the reviews into a CSV file. We have elected to create a separate CSV file for each restaurant as the crawling process takes a long time, and it would easier to continue scraping from when the scraping process times out.
+This file was created to scrape the data necessary for training our model. Using Beautiful Soup, this takes the Yelp landing page for a given city and scrapes the URL for every restaurant in the city landing page. Then for every restaurant, it scrapes reviews into a CSV file. We have elected to create a separate CSV file for each restaurant as the crawling process takes a long time, and it would easier to continue scraping from when the scraping process times out.
 
-One feature of this file contains the element of "sleeping" and a user-defined counter (where a higher number corresponds to a longer run-time but fewer pages skipped). Yelp attempts to block attempts for web-scraping, making it hard for an algorithm to go through the web pages without being blocked. With this caveat in mind, we created a feature such that during scraping, for each page, it would randomly "sleep" to try to bypass the Yelp's detection system and/or tries again "counter" many times if it fails, before giving up and skipping the page. This ended up working as we were able to collect more reviews than before. However, this comes at the cost of a longer runtime due to the random "sleeps" and more retries. In our testing, a counter of 15 offers a balance between thoroughness and speed (skipping less than 30% of all links). Even so, it is able to generate ample (>100k) reviews when left to run to completion. 
+One feature of this file contains the element of "sleeping" and a user-defined counter (where a higher number corresponds to a longer run-time but fewer pages skipped). Yelp attempts to block attempts for web-scraping, making it hard for an algorithm to go through the web pages without being blocked. With this caveat in mind, we created a feature such that during scraping, for each page, it would randomly "sleep" to try to bypass the Yelp's detection system and/or tries again "counter" many times if it fails, before giving up and skipping the page. This ended up working as we were able to collect more reviews than before. However, this comes at the cost of a longer runtime due to the random "sleeps" and more retries. 
 
 Another feature of this file is that we've included a maximum number of reviews per restaurant parameter for users to decide upon crawling and scraping. This enables users to get reviews from a variety of restaurants at a faster rate because once this maximum number is reached, the crawler will skip to the next restaurant. This also allows for more equal distribution of reviews for each restaurant/cuisine because in Yelp, some restaurants have around 8000 reviews while others only have around 1000 - 2000 reviews. 
 
+
 ### merge_data.py
-This file contains one function that combines all restaurant reviews scraped using the functions in crawl_and_scrape.py into one DataFrame. Then, it grouped each review by rating and randomly sampled 2,000 reviews from each group. It creates a CSV containing reviews with equal distribution of ratings. 
+This file contains one function that combines all restaurant reviews scraped using the functions in crawl_and_scrape.py into one DataFrame. Then, it grouped each review by rating and attempts to sample equally from each rating group to create a dataset with 5,000 reviews.
+
+If there is insufficient reviews from any particular rating group, then we will adjust accordingly and simply accept all reviews from the rating group. Additional reviews will be sampled from other rating groups instead. The final dataframe will be written into a CSV.
 
 ### analyze_words.py
 This file focuses on processing the CSV file that contains the 10,000 balanced reviews (output of merged_data.py) and returning a DataFrame with the corpus' tokens as the columns and the TF-IDF values for each review as the rows. It considers the n-gram length, whether or not to lemmatize words, and how many stop words should be removed. 
@@ -49,7 +52,7 @@ This contains Jupyter notebooks that we used for testing. To test that our progr
 This folder contains all of the optimal arguments for our final model, created by model.py and used in the main.py. 
 
 ### scraped_data
-This contains all of the raw, scraped data from Yelp.
+This contains all of the raw, scraped data from Yelp. Datasets are grouped based upon geographical locations. In our modelling, we used data from main cities in the United States such as New York, Chicago and Las Vegas.
 
 ### test_data
 This contains the data that we test on, aka what our merged_data.py creates. 
@@ -71,3 +74,11 @@ There are geographical and intertemporal differences in word choice/structure of
 This could be enabled by categorizing reviews based on the location of the restaurant and the time of reviews created. 
 
 The terminal interface could also be enhanced by the presence of build-in word/sentence complete scripts that assists users in coming up with reviews. Like the autocomplete feature on mobile phones, the terminal will display a drop-down list of possible next words for users during the input process.
+
+### Important Caveat!!
+
+It turns out that due to restrictions imposed by Yelp.com, subsequent review pages(after page 1, for each restaurant) do not contain the relevant review information in its HTML source code. Due to time constraints, we will not be changing our scraping code drastically.
+
+As such, we will be only collecting 20 reviews from each restaurant. The shortfall in reviews is made up by scraping data from more cities. This is made possible by setting the "max_rev_per_resto" parameter to 20.
+
+In our attempts at scraping reviews, we used a 'counter' of 30, and could generate 2000-3000 reviews per city.

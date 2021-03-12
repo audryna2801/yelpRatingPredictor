@@ -21,7 +21,7 @@ One feature of this file contains the element of "sleeping" and a user-defined c
 Another feature of this file is that we've included a maximum number of reviews per restaurant parameter for users to decide upon crawling and scraping. This enables users to get reviews from a variety of restaurants at a faster rate because once this maximum number is reached, the crawler will skip to the next restaurant. This also allows for more equal distribution of reviews for each restaurant/cuisine because, in Yelp, some restaurants have around 8000 reviews while others only have around 1000 - 2000 reviews. 
 
 ### merge_data.py
-This file contains one function that combines all restaurant reviews scraped using the functions in crawl_and_scrape.py into one DataFrame. Then, it grouped each review by rating and attempts to sample equally from each rating group to create a dataset with 5,000 reviews.
+This file contains one function that combines all restaurant reviews scraped using the functions in crawl_and_scrape.py into one DataFrame. Then, it grouped each review by rating and attempts to sample equally from each rating group to create a dataset with 10,000 reviews.
 
 If there are insufficient reviews from any particular rating group, then we will adjust accordingly and simply accept all reviews from the rating group. Additional reviews will be sampled from other rating groups instead. The final DataFrame will be written into a CSV.
 
@@ -35,7 +35,7 @@ The last function in the file, get_df_idf_stops(), takes in parameters n (n-gram
 ### model.py
 This file trains tests and saves our model. To evaluate the accuracy of each model, we calculated a weighted accuracy that allows us to penalize predictions more when they are further away from the actual rating (i.e. predicting a 5-star review as a 1 star). In the function "optimize_model", we cycled through combinations of parameters, namely: n-grams, number of stop words, and different variances of alphas to get the best combination that maximizes the accuracy of our model. Then, we used the output of this function in our "main_modelling" function where we further optimized the model by performing feature selection. The feature selection was done mainly using the sklearn library's feature selection method. 
 
-Although feature selection reduced our overall accuracy (since it reduces the number of predictors in our model), it reduces the potential for overfitting. Given that our data comes exclusively from the Chicago area, reducing overfitting is important to make our model more robust in predicting reviews from a random user (of unknown location).
+Although feature selection reduced our overall accuracy (since it reduces the number of predictors in our model), it reduces the potential for overfitting. Given that our data comes exclusively from the US, reducing overfitting is important to make our model more robust in predicting reviews from a random user (of unknown location).
 
 Then, "main_modelling" (after optimizing and feature selection) will save the best model as a PKL file, which is the model that we will use to predict the user's review input. It also saves the optimal vectorizer and selector in PKL files.
 
@@ -47,7 +47,7 @@ Using the files from 'optimal_args', the text input will be turned into an array
 ### optimizing_results.txt
 This file contains the print statements resulted from optimizing the model using different training-testing splits. 
 
-## FOLDERS
+## Directories
 
 ### iPython_Tests
 This contains Jupyter notebooks that we used for testing. To test that our program was accurate, we tested against various amounts of ratios between training and testing data and found that our model was consistently successful, even when given a smaller amount of training data. This folder mainly contains scrap work that we did and is not relevant to the workings of our program. 
@@ -65,6 +65,7 @@ This contains the data that we test on, aka what our merged_data.py creates.
 
 ### On optimizing the model
 We optimized our model using the standard training-testing split 80-20 as well as a 5-95 split. Our best combination (ngram, num_stop_words, alpha) was: (2, 0, 0.0001) for the first split and (2, 0, 0.0001) for the second. The resulting combination was exactly the same. This indicates that our optimizing function is robust.
+
 The print statements for our optimization can be found in the optimizing_results.txt file. 
 
 It is interesting to note that the optimal number of stop words appears to be 0 from our testing. This is likely due to the limited number of unique words used in the context of restaurant reviews. As such, each word carries greater weight and even frequently appearing words have an impact on the overall judgment of the model.
@@ -78,7 +79,7 @@ This could be enabled by categorizing reviews based on the location of the resta
 
 The terminal interface could also be enhanced by the presence of build-in word/sentence complete scripts that assists users in coming up with reviews. Like the autocomplete feature on mobile phones, the terminal will display a drop-down list of possible next words for users during the input process.
 
-### Important Caveat!!
+### Important Caveat
 
 It turns out that due to restrictions imposed by Yelp.com, subsequent review pages(after page 1, for each restaurant) do not contain the relevant review information in its HTML source code. Due to time constraints, we will not be changing our scraping code drastically. As such, we will be only collecting 20 reviews from each restaurant. The shortfall in reviews is made up by scraping data from more cities. This is made possible by setting the "max_rev_per_resto" parameter to 20.
 

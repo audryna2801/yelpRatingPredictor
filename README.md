@@ -9,9 +9,9 @@ Our goal for this project was to create a program that predicts a Yelp rating (o
 Make sure you have all of the libraries downloaded. Run "python3 main.py" in the terminal or "run main.py" in jupyter notebook. Type in your review and press enter to get the star rating.
 
 NOTE ON LIBRARIES:
-We recommend using the 0.23.1 version of sklearn because our model, vectorizer and selector was created using that version. Using another version of sklearn will still work but will result in warning/error messages. 
+We recommend using the 0.23.1 version of sklearn because our model, vectorizer and selector was created using that version. Using another version of sklearn will result in warning/error messages. 
 
-You can run this command on your terminal to ensure that you have the right version installed
+You can run this command on your terminal to ensure that you have the right version installed:
 python3 -m pip install scikit-learn==0.23.1
 
 If you're getting an nltk wordnet error, uncomment line 14 in analyze_words.py and re-run main.py

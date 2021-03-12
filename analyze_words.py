@@ -204,3 +204,47 @@ def get_df_idf_stops(csv_file, n, num_stop_words):
 #             rev[token] = tf * idf[token]
 
 #     return pd.DataFrame(token_to_freq_by_rev).fillna(0), idf
+
+
+# def get_df_idf_stops(csv_file, n=2, lemmatized=True,
+#                      num_stop_words=20):
+#     '''
+#     Given a dataframe with two columns, Rating and Text,
+#     returns a dataframe that vectorizes the text and joins it
+#     back with the Rating column.
+#     Given a dataframe with two columns, rating and text, generate a
+#     dataframe that vectorizes the text, and join it back with the
+#     rating column.
+#     Inputs:
+#         csv_file (csv): csv file containing scraped reviews from Yelp
+#         csv_file (str): CSV file containing scraped Yelp reviews
+#         n (int): range of n-grams to use
+#         remove_stop (boolean): True if stop words need to be removed
+#         lemmatized (bool): whether or not to lemmatize words
+#         num_stop_words (int): number of stop words to remove
+#     Returns:
+#         final dataframe for modelling
+#     Returns: DataFrame, dict (idf), and list (stop words)
+#     '''
+
+#     df = pd.read_csv(csv_file, usecols=[0, 1],
+#                      names=["Rating", "Text"], header=None)
+#     all_tokens = [processing(text, lemmatized) for text in df.Text]
+
+#     if num_stop_words > 0:
+#         stop_words = get_stop_words(all_tokens, num_stop_words)
+#         all_tokens = [[token for token in tokens if token not in stop_words]
+#                       for tokens in all_tokens]
+
+#     ngrams = [make_ngrams(tokens, n) for tokens in all_tokens]
+
+#     final_df, idf = tfidf_vectorize(ngrams)
+#     y_values = df.Rating.astype('category')
+#     y_values = df.Rating.astype("category")
+
+#     final_df["Rating"] = y_values
+
+#     if num_stop_words > 0:
+#         return final_df, idf, stop_words
+#     else:
+#         return final_df, idf, []

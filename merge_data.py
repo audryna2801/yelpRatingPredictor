@@ -13,15 +13,17 @@ def merge_data(out_csv, scraped_data_dirs=SCRAPED_DATA, num_samples=10000,
                random_state=33):
     '''
     First, combine all restaurant reviews into one dataframe.
-    Then, it reduces overweight of 5 star reviews by removing them.
-    Merged dataset is then written into a csv.
+    Then, it will try to generate equal (or most equal) distribution of reviews
+    per rating. Merged dataset is then written into a csv.
 
     Input:
-        out_csv (str): csv file name for the merged dataset
-        scraped_data_dir (dir): directory containing food reviews from 
+      - out_csv (str): csv file name for the merged dataset
+      - scraped_data_dir (dir): directory containing food reviews from 
                                 restaurants
-        num_samples (int): total number of reviews selected for merged dataset
-        random_state (int): seed for random sampling
+      - num_samples (int): total number of reviews selected for merged dataset
+      - random_state (int): seed for random sampling
+
+    Returns: None, writes to CSV file
     '''
     # Get a list of all CSV filenames in scraped data directories
     all_rest_csv = []
@@ -41,7 +43,6 @@ def merge_data(out_csv, scraped_data_dirs=SCRAPED_DATA, num_samples=10000,
     concatenated_df = concatenated_df.drop_duplicates().reset_index(drop=True)
 
     # Try to achieve the most equal distribution of reviews by rating
-    # When dataset is not large enough
     remaining_samples = num_samples
     final_df = pd.DataFrame()
     for rating in range(1, 6):
@@ -52,14 +53,6 @@ def merge_data(out_csv, scraped_data_dirs=SCRAPED_DATA, num_samples=10000,
         rating_sample = rating_df.sample(size, random_state=random_state)
         final_df = pd.concat([final_df, rating_sample], ignore_index=True)
         remaining_samples -= size
-
-    # The below code was used previously to get an equal
-    # distribution of review per rating when original dataset is large enough
-
-    ## num_samples_per_rating = round(num_samples / 5)
-
-    # concat_data = (concatenated_df.groupby("Rating").sample(
-    # n=num_samples_per_rating, random_state=random_state).reset_index(drop=True))
 
     # Write concat_data to CSV
     final_df.to_csv(out_csv, index=False)

@@ -44,8 +44,8 @@ def get_weighted_accuracy(x_train, x_test, y_train, y_test, alpha):
     Calculate weighted accuracy of a model.
 
     Inputs:
-      - x_train (DataFrame): x training data
-      - x_test (DataFrame): x testing data
+      - x_train (list of arr): x training data
+      - x_test (list of arr): x testing data
       - y_train (arr): y training data
       - y_test (arr): y testing data
       - alpha (float): constant that multiplies regularization term
@@ -66,9 +66,9 @@ def feature_selection(model, x_train, y_train, x_test):
 
     Inputs:
         - model (Model): model being applied
-        - x_train (DataFrame): x training data
+        - x_train (list of arr): x training data
         - y_train (arr): y training data
-        - x_test (DataFrame): x testing data
+        - x_test (list of arr): x testing data
 
     Returns: 2 arrs (filtered x_train, filtered x_test), 
              Selector obj (trained_feature_selection_model)

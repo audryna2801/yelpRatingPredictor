@@ -8,7 +8,7 @@ RANDOM_SEED = 33
 
 
 def merge_data(out_csv="test_data/merged_data.csv",
-               scraped_data_dir="scraped_data/", num_samples=5000):
+               scraped_data_dir="scraped_data/", num_samples=10000):
     '''
     First, combine all restaurant reviews into one dataframe.
     Then, try to generate a roughly equal distribution of reviews
@@ -26,8 +26,9 @@ def merge_data(out_csv="test_data/merged_data.csv",
     all_rest_csv = []
 
     for directory in os.listdir(scraped_data_dir):
-        for file_name in os.listdir(directory):
-            all_rest_csv += [str(directory+file_name)]
+        for file_name in os.listdir(scraped_data_dir+str(directory)):
+            all_rest_csv += [scraped_data_dir +
+                             str(directory)+'/'+str(file_name)]
 
     # Concatenate all DataFrames together
     df_from_each_file = (pd.read_csv(f, usecols=[0, 1],

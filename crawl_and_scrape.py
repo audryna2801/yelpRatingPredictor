@@ -220,7 +220,8 @@ def crawl_and_scrape(city_url,
                      counter=30,
                      max_revs_per_resto=20):
     '''
-    Crawl a given city landing page according to the provided URL
+    Crawl a given city landing page according to the provided URL (e.g.
+    https://www.yelp.com/search?cflt=restaurants&find_loc=Chicago%2C%20IL)
     and export all reviews from restaurants in that city to a CSV
     file. CSV file does not contain headers.
 

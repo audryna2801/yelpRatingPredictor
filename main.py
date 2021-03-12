@@ -11,7 +11,7 @@ def user_interface():
     print("==================================================")
     print("   Welcome to the Suggested Star Rating System!")
     print()
-    print("            Copy and paste your review.")
+    print("     Copy and paste or type in your review.")
     print()
     print("       Type Control-D to exit the program.")
     print("==================================================")

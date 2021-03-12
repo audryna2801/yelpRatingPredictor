@@ -77,8 +77,6 @@ The terminal interface could also be enhanced by the presence of build-in word/s
 
 ### Important Caveat!!
 
-It turns out that due to restrictions imposed by Yelp.com, subsequent review pages(after page 1, for each restaurant) do not contain the relevant review information in its HTML source code. Due to time constraints, we will not be changing our scraping code drastically.
-
-As such, we will be only collecting 20 reviews from each restaurant. The shortfall in reviews is made up by scraping data from more cities. This is made possible by setting the "max_rev_per_resto" parameter to 20.
+It turns out that due to restrictions imposed by Yelp.com, subsequent review pages(after page 1, for each restaurant) do not contain the relevant review information in its HTML source code. Due to time constraints, we will not be changing our scraping code drastically. As such, we will be only collecting 20 reviews from each restaurant. The shortfall in reviews is made up by scraping data from more cities. This is made possible by setting the "max_rev_per_resto" parameter to 20.
 
 In our attempts at scraping reviews, we used a 'counter' of 30, and could generate 2000-3000 reviews per city.
